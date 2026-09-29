@@ -7,6 +7,7 @@ import { useCart } from '@/lib/useCart';
 import { formatBRL } from '@/lib/format';
 import { unitPrice } from '@/lib/coupon';
 import { PAYMENT_METHODS } from '@/lib/validation';
+import { findZone, type DeliveryModeValue } from '@/lib/delivery';
 
 type Product = { id: string; name: string; price: number; promoPrice: number | null };
 type Coupon = { code: string; type: 'PERCENT' | 'FIXED' | 'FREE_DELIVERY'; value: number; minOrder: number };
@@ -33,7 +34,9 @@ export default function CartCheckout({
   slug,
   products,
   coupons,
-  deliveryFee,
+  deliveryFee: taxaUnica,
+  deliveryMode = 'FIXED',
+  zones = [],
   minOrder,
   isOpen,
   defaultAddress,
@@ -42,6 +45,8 @@ export default function CartCheckout({
   products: Product[];
   coupons: Coupon[];
   deliveryFee: number;
+  deliveryMode?: DeliveryModeValue;
+  zones?: { name: string; fee: number }[];
   minOrder: number;
   isOpen: boolean;
   defaultAddress: Address | null;
@@ -68,7 +73,17 @@ export default function CartCheckout({
   const [error, setError] = useState('');
   const [placing, setPlacing] = useState(false);
 
-  const discount = couponResult?.ok ? couponResult.discount ?? 0 : 0;
+  // Entrega por bairro: a taxa depende do bairro escolhido (o servidor confere de novo).
+  const porBairro = deliveryMode === 'BY_DISTRICT';
+  const zona = porBairro ? findZone(zones, address.district) : null;
+  const deliveryFee = porBairro ? zona?.fee ?? 0 : taxaUnica;
+
+  const cupomUsado = couponResult?.ok ? coupons.find((c) => c.code === couponResult.code) : undefined;
+  const discount = !couponResult?.ok
+    ? 0
+    : cupomUsado?.type === 'FREE_DELIVERY'
+      ? deliveryFee
+      : couponResult.discount ?? 0;
   const total = Math.max(0, subtotal + deliveryFee - discount);
 
   async function applyCoupon(code?: string) {
@@ -91,6 +106,7 @@ export default function CartCheckout({
     if (!address.cep || !address.street || !address.number || !address.district || !address.city) {
       return setError('Preencha o endereço de entrega.');
     }
+    if (porBairro && !zona) return setError('Escolha um dos bairros atendidos pela loja.');
     if (toMin > 0) return setError(`Pedido mínimo de ${formatBRL(minOrder)}.`);
     if (!isOpen) return setError('A loja está fechada agora.');
 
@@ -198,7 +214,25 @@ export default function CartCheckout({
           <input className="input col-span-1" placeholder="Número" value={address.number} onChange={(e) => setAddress({ ...address, number: e.target.value })} />
           <input className="input col-span-2" placeholder="Rua / Avenida" value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} />
           <input className="input col-span-2" placeholder="Complemento (opcional)" value={address.complement} onChange={(e) => setAddress({ ...address, complement: e.target.value })} />
-          <input className="input col-span-1" placeholder="Bairro" value={address.district} onChange={(e) => setAddress({ ...address, district: e.target.value })} />
+          {porBairro ? (
+            <select
+              className="input col-span-1"
+              aria-label="Bairro"
+              value={zona?.name ?? ''}
+              onChange={(e) => setAddress({ ...address, district: e.target.value })}
+            >
+              <option value="" disabled>
+                Bairro
+              </option>
+              {zones.map((z) => (
+                <option key={z.name} value={z.name}>
+                  {z.name} · {z.fee > 0 ? formatBRL(z.fee) : 'grátis'}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input className="input col-span-1" placeholder="Bairro" value={address.district} onChange={(e) => setAddress({ ...address, district: e.target.value })} />
+          )}
           <input className="input col-span-1" placeholder="Cidade" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
           <input className="input col-span-2" placeholder="Ponto de referência (opcional)" value={address.reference} onChange={(e) => setAddress({ ...address, reference: e.target.value })} />
         </div>
@@ -255,8 +289,8 @@ export default function CartCheckout({
           </div>
         )}
         <div className="flex justify-between text-sm py-1">
-          <span>Taxa de entrega</span>
-          <span>{formatBRL(deliveryFee)}</span>
+          <span>Taxa de entrega{porBairro && zona ? ` · ${zona.name}` : ''}</span>
+          <span>{porBairro && !zona ? 'escolha o bairro' : deliveryFee > 0 ? formatBRL(deliveryFee) : 'Grátis'}</span>
         </div>
         <div className="flex justify-between font-bold py-1 border-t border-line mt-1 pt-2">
           <span>Total</span>
@@ -269,7 +303,7 @@ export default function CartCheckout({
 
       <button
         onClick={placeOrder}
-        disabled={placing || toMin > 0 || !isOpen}
+        disabled={placing || toMin > 0 || !isOpen || (porBairro && !zona)}
         className="btn-primary w-full"
       >
         {placing ? 'Enviando pedido…' : `Enviar pedido · ${formatBRL(total)}`}

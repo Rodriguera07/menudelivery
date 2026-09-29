@@ -11,7 +11,7 @@ export default async function LojaPage() {
   const session = await requireMerchantSession();
   const store = await prisma.store.findUnique({
     where: { id: session.storeId },
-    include: { hours: true, merchant: true },
+    include: { hours: true, merchant: true, zones: { orderBy: { name: 'asc' } } },
   });
   if (!store) return null;
 
@@ -34,13 +34,15 @@ export default async function LojaPage() {
           name: store.name,
           tagline: store.tagline,
           logoUrl: store.logoUrl,
+          bannerUrl: store.bannerUrl,
           isOpen: store.isOpen,
           whatsapp: store.whatsapp,
           pixKey: store.pixKey ?? '',
           deliveryFee: Number(store.deliveryFee),
+          deliveryMode: store.deliveryMode,
+          zones: store.zones.map((z) => ({ name: z.name, fee: Number(z.fee), active: z.active })),
           minOrder: Number(store.minOrder),
           slug: store.slug,
-          commissionPct: Number(store.commissionPct),
         }}
       >
         <StoreHoursEditor initialHours={hours} />

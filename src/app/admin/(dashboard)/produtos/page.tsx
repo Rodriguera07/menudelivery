@@ -18,6 +18,7 @@ export default async function ProdutosPage() {
     promoPrice: p.promoPrice !== null ? Number(p.promoPrice) : null,
     active: p.active,
     sold: p.sold,
+    photoUrl: p.photoUrl,
   }));
 
   return <ProductsManager initialProducts={initialProducts} />;

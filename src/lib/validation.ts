@@ -73,6 +73,17 @@ export const storeSettingsSchema = z.object({
   deliveryFee: z.coerce.number().nonnegative().optional(),
   minOrder: z.coerce.number().nonnegative().optional(),
   isOpen: z.boolean().optional(),
+  deliveryMode: z.enum(['FIXED', 'BY_DISTRICT']).optional(),
+  zones: z
+    .array(
+      z.object({
+        name: z.string().trim().min(2, 'Informe o nome do bairro').max(60),
+        fee: z.coerce.number().nonnegative('Taxa do bairro inválida'),
+        active: z.boolean().optional(),
+      }),
+    )
+    .max(300, 'Máximo de 300 bairros')
+    .optional(),
 });
 
 export const storeHoursSchema = z

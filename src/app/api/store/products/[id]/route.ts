@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getMerchantSession } from '@/lib/auth';
 import { productUpdateSchema } from '@/lib/validation';
+import { del } from '@vercel/blob';
 
 async function findOwnedProduct(storeId: string, id: string) {
   return prisma.product.findFirst({ where: { id, storeId } });
@@ -45,5 +46,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!existing) return NextResponse.json({ error: 'Produto não encontrado.' }, { status: 404 });
 
   await prisma.product.delete({ where: { id } });
+  if (existing.photoUrl) await del(existing.photoUrl).catch(() => {});
   return NextResponse.json({ ok: true });
 }

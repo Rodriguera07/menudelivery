@@ -9,15 +9,19 @@ export default function StorePreviewCard({
   name,
   tagline,
   logoUrl,
+  bannerUrl,
   isOpen,
   deliveryFee,
+  entregaPorBairro,
   minOrder,
 }: {
   name: string;
   tagline?: string | null;
   logoUrl: string | null;
+  bannerUrl?: string | null;
   isOpen: boolean;
   deliveryFee: number;
+  entregaPorBairro?: boolean;
   minOrder: number;
 }) {
   const iniciais = name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -26,15 +30,20 @@ export default function StorePreviewCard({
     <div className="rounded-[22px] bg-[#F6F4F2] border border-[#ECE7E2] p-3">
       <div className="rounded-2xl overflow-hidden bg-white shadow-[0_10px_30px_-12px_rgba(29,27,26,.25)]">
         <div
-          className="h-[72px]"
+          className={`relative ${bannerUrl ? 'h-[110px]' : 'h-[72px]'}`}
           style={{
             backgroundColor: '#C8101E',
             backgroundImage: 'radial-gradient(rgba(255,255,255,.16) 1.2px, transparent 1.3px)',
             backgroundSize: '14px 14px',
           }}
-        />
+        >
+          {bannerUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          )}
+        </div>
         <div className="px-4 pb-4">
-          <div className="-mt-8 w-16 h-16 rounded-2xl bg-white shadow-[0_0_0_4px_#fff,0_6px_14px_rgba(29,27,26,.14)] overflow-hidden grid place-items-center">
+          <div className="relative -mt-8 w-16 h-16 rounded-2xl bg-white shadow-[0_0_0_4px_#fff,0_6px_14px_rgba(29,27,26,.14)] overflow-hidden grid place-items-center">
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logoUrl} alt="" className="w-full h-full object-cover" />
@@ -59,7 +68,7 @@ export default function StorePreviewCard({
           <div className="grid grid-cols-2 gap-2 mt-3">
             <div className="rounded-xl bg-[#F6F4F2] px-3 py-2">
               <span className="flex items-center gap-1 text-[11px] text-[#5E5A57]">
-                <Icon d={I.moto} size={12} /> Entrega
+                <Icon d={I.moto} size={12} /> {entregaPorBairro ? 'Entrega a partir' : 'Entrega'}
               </span>
               <span className="pp-mono text-[13px] font-semibold">{deliveryFee > 0 ? formatBRL(deliveryFee) : 'Grátis'}</span>
             </div>

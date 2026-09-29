@@ -40,6 +40,8 @@ export type Loja = {
   aberta: boolean;
   tempoEntrega?: string;
   taxaEntregaCentavos: number;
+  /** Entrega cobrada por bairro: a taxa acima é a menor delas ("a partir de"). */
+  entregaPorBairro?: boolean;
   pedidoMinimoCentavos: number;
 };
 
@@ -202,10 +204,14 @@ export default function LojaCardapio({
       </header>
 
       {/* ---------- Capa ---------- */}
-      <div className="relative h-[132px] lg:h-[180px] lj-cover">
+      <div className={`relative lj-cover ${loja.capaUrl ? 'h-[180px] sm:h-[230px] lg:h-[300px]' : 'h-[132px] lg:h-[180px]'}`}>
         {loja.capaUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={loja.capaUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={loja.capaUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            {/* leve sombra no topo para os botões continuarem legíveis sobre a foto */}
+            <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/35 to-transparent lg:hidden" />
+          </>
         )}
         <div className="lg:hidden absolute top-3.5 right-4 flex gap-2">
           <button aria-label="Buscar" onClick={() => document.getElementById('busca-mobile')?.focus()} className="w-11 h-11 rounded-full bg-white/90 grid place-items-center">
@@ -238,13 +244,13 @@ export default function LojaCardapio({
 
               <div className="lg:hidden grid grid-cols-3 gap-2 pt-1">
                 {loja.tempoEntrega && <InfoBox label="Tempo" valor={loja.tempoEntrega} />}
-                <InfoBox label="Entrega" valor={loja.taxaEntregaCentavos ? brl(loja.taxaEntregaCentavos) : 'Grátis'} />
+                <InfoBox label={loja.entregaPorBairro ? 'Entrega a partir' : 'Entrega'} valor={loja.taxaEntregaCentavos ? brl(loja.taxaEntregaCentavos) : 'Grátis'} />
                 <InfoBox label="Mínimo" valor={brl(loja.pedidoMinimoCentavos)} />
               </div>
               <div className="hidden lg:flex gap-[22px] text-sm">
                 {loja.tempoEntrega && <InfoLinha icon={I.relogio}>{loja.tempoEntrega}</InfoLinha>}
                 <InfoLinha icon={I.moto}>
-                  Entrega <b className="lj-mono font-semibold">{loja.taxaEntregaCentavos ? brl(loja.taxaEntregaCentavos) : 'Grátis'}</b>
+                  Entrega {loja.entregaPorBairro && 'a partir de '}<b className="lj-mono font-semibold">{loja.taxaEntregaCentavos ? brl(loja.taxaEntregaCentavos) : 'Grátis'}</b>
                 </InfoLinha>
                 <InfoLinha icon={I.sacola}>
                   Pedido mínimo <b className="lj-mono font-semibold">{brl(loja.pedidoMinimoCentavos)}</b>
@@ -517,11 +523,13 @@ function ResumoSacola({
         </div>
         <div className="flex justify-between text-[#5E5A57]">
           <span>Entrega</span>
-          <span className="lj-mono">{loja.taxaEntregaCentavos ? brl(loja.taxaEntregaCentavos) : 'Grátis'}</span>
+          <span className="lj-mono">
+            {loja.entregaPorBairro ? 'conforme o bairro' : loja.taxaEntregaCentavos ? brl(loja.taxaEntregaCentavos) : 'Grátis'}
+          </span>
         </div>
         <div className="flex justify-between text-[17px] font-bold pt-1">
-          <span>Total</span>
-          <span className="lj-mono">{brl(vazia ? 0 : subtotal + loja.taxaEntregaCentavos)}</span>
+          <span>{loja.entregaPorBairro ? 'Total sem entrega' : 'Total'}</span>
+          <span className="lj-mono">{brl(vazia ? 0 : subtotal + (loja.entregaPorBairro ? 0 : loja.taxaEntregaCentavos))}</span>
         </div>
       </div>
 

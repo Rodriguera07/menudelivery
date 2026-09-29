@@ -10,6 +10,7 @@ export default async function CarrinhoPage({ params }: { params: Promise<{ slug:
     include: {
       products: { where: { active: true } },
       coupons: { where: { active: true } },
+      zones: { where: { active: true }, orderBy: { name: 'asc' } },
     },
   });
   if (!store) return notFound();
@@ -53,6 +54,8 @@ export default async function CarrinhoPage({ params }: { params: Promise<{ slug:
       products={products}
       coupons={coupons}
       deliveryFee={Number(store.deliveryFee)}
+      deliveryMode={store.deliveryMode}
+      zones={store.zones.map((z) => ({ name: z.name, fee: Number(z.fee) }))}
       minOrder={Number(store.minOrder)}
       isOpen={store.isOpen}
       defaultAddress={defaultAddress}

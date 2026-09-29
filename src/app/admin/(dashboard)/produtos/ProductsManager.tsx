@@ -15,13 +15,34 @@ type Product = {
   promoPrice: number | null;
   active: boolean;
   sold: number;
+  photoUrl: string | null;
 };
+
+const MAX_FOTO = 4 * 1024 * 1024;
+const TIPOS_FOTO = ['image/png', 'image/jpeg', 'image/webp'];
+function checarFoto(f: File) {
+  if (!TIPOS_FOTO.includes(f.type)) return 'Formato inválido. Use PNG, JPG ou WEBP.';
+  if (f.size > MAX_FOTO) return 'A foto precisa ter até 4 MB.';
+  return '';
+}
+async function enviarFoto(id: string, file: File): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(`/api/store/products/${id}/photo`, { method: 'POST', body: form });
+  const data = await res.json().catch(() => ({}));
+  return res.ok ? { ok: true, url: data.photoUrl } : { ok: false, error: data.error ?? 'Não foi possível enviar a foto.' };
+}
 
 type Draft = { name: string; category: string; description: string; price: string; promoPrice: string };
 const VAZIO: Draft = { name: '', category: '', description: '', price: '', promoPrice: '' };
 
 function normalizeProduct(raw: Product): Product {
-  return { ...raw, price: Number(raw.price), promoPrice: raw.promoPrice !== null ? Number(raw.promoPrice) : null };
+  return {
+    ...raw,
+    price: Number(raw.price),
+    promoPrice: raw.promoPrice !== null && raw.promoPrice !== undefined ? Number(raw.promoPrice) : null,
+    photoUrl: raw.photoUrl ?? null,
+  };
 }
 
 const semRS = (v: number) => formatBRL(v).replace('R$', '').trim();
@@ -80,6 +101,17 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
 
   const ativos = products.filter((p) => p.active).length;
   const emPromo = products.filter((p) => descontoPct(p) > 0).length;
+  const semFoto = products.filter((p) => !p.photoUrl).length;
+
+  async function trocarFoto(p: Product, file: File) {
+    const e = checarFoto(file);
+    if (e) return toast.show(e, 'erro');
+    const local = URL.createObjectURL(file);
+    setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, photoUrl: local } : x)));
+    const r = await enviarFoto(p.id, file);
+    setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, photoUrl: r.ok ? r.url : p.photoUrl } : x)));
+    toast.show(r.ok ? 'Foto salva' : r.error, r.ok ? 'ok' : 'erro');
+  }
 
   async function updateProduct(id: string, patch: Record<string, unknown>, okMsg = 'Salvo') {
     const res = await fetch(`/api/store/products/${id}`, {
@@ -131,7 +163,9 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
             <Stat label="Ativos" value={ativos}>
               {products.length - ativos > 0 && <span className="text-xs text-[#6B6662]">{products.length - ativos} pausado(s)</span>}
             </Stat>
-            <Stat label="Em promoção" value={emPromo} />
+            <Stat label="Em promoção" value={emPromo}>
+              {semFoto > 0 && <span className="text-xs text-[#8A5A00]">{semFoto} sem foto</span>}
+            </Stat>
           </section>
 
           {/* ---------- Filtros ---------- */}
@@ -233,6 +267,7 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
                         p={p}
                         onPatch={(patch, msg) => updateProduct(p.id, patch, msg)}
                         onEdit={() => setEditor({ id: p.id })}
+                        onFoto={(f) => trocarFoto(p, f)}
                         onDelete={() => deleteProduct(p.id)}
                       />
                     ))}
@@ -275,12 +310,15 @@ function ProdutoLinha({
   onPatch,
   onEdit,
   onDelete,
+  onFoto,
 }: {
   p: Product;
   onPatch: (patch: Record<string, unknown>, msg?: string) => Promise<boolean>;
   onEdit: () => void;
   onDelete: () => Promise<void>;
+  onFoto: (f: File) => void;
 }) {
+  const fotoRef = useRef<HTMLInputElement>(null);
   const [bg, fg] = tom(p.category);
   const desc = descontoPct(p);
 
@@ -291,9 +329,38 @@ function ProdutoLinha({
       }`}
     >
       <div className="flex items-center gap-3 min-w-0 col-span-2 md:col-span-1">
-        <div className="w-11 h-11 rounded-xl grid place-items-center shrink-0 pp-display font-bold text-lg" style={{ background: bg, color: fg }}>
-          {p.name.trim()[0]?.toUpperCase()}
-        </div>
+        <button
+          type="button"
+          onClick={() => fotoRef.current?.click()}
+          title={p.photoUrl ? 'Trocar foto' : 'Adicionar foto'}
+          aria-label={p.photoUrl ? `Trocar foto de ${p.name}` : `Adicionar foto de ${p.name}`}
+          className="group relative w-14 h-14 rounded-xl overflow-hidden shrink-0 grid place-items-center"
+          style={p.photoUrl ? undefined : { background: bg, color: fg }}
+        >
+          {p.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.photoUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="flex flex-col items-center gap-0.5">
+              <Icon d={I.imagem} size={18} />
+              <span className="text-[9px] font-bold uppercase tracking-wide">foto</span>
+            </span>
+          )}
+          <span className="absolute inset-0 bg-[#1D1B1A]/55 text-white grid place-items-center opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
+            <Icon d={I.lapis} size={16} />
+          </span>
+        </button>
+        <input
+          ref={fotoRef}
+          type="file"
+          accept={TIPOS_FOTO.join(',')}
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onFoto(f);
+            e.target.value = '';
+          }}
+        />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className={`font-semibold truncate ${p.active ? 'text-[#1D1B1A]' : 'text-[#6B6662]'}`}>{p.name}</span>
@@ -450,6 +517,21 @@ function ProdutoEditor({
   const [tentou, setTentou] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const nomeRef = useRef<HTMLInputElement>(null);
+  // Foto: arquivo novo escolhido, ou pedido para remover a atual.
+  const [foto, setFoto] = useState<{ file: File; url: string } | null>(null);
+  const [removerFoto, setRemoverFoto] = useState(false);
+  const [erroFoto, setErroFoto] = useState('');
+  const [arrastando, setArrastando] = useState(false);
+  const fotoInput = useRef<HTMLInputElement>(null);
+  const fotoAtual = foto?.url ?? (removerFoto ? null : produto?.photoUrl ?? null);
+
+  function escolherFoto(f: File) {
+    const e = checarFoto(f);
+    setErroFoto(e);
+    if (e) return;
+    setFoto({ file: f, url: URL.createObjectURL(f) });
+    setRemoverFoto(false);
+  }
 
   const fechar = useRef(onClose);
   fechar.current = onClose;
@@ -491,9 +573,22 @@ function ProdutoEditor({
       body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setSalvando(false);
+      return setErro(data.error ?? 'Não foi possível salvar o produto.');
+    }
+    let salvo: Product = produto ? { ...produto, ...data.product } : data.product;
+    // Foto vai depois, porque um produto novo só tem id depois de criado.
+    if (foto) {
+      const r = await enviarFoto(salvo.id, foto.file);
+      if (r.ok) salvo = { ...salvo, photoUrl: r.url };
+      else setErro(`Produto salvo, mas a foto não foi enviada: ${r.error}`);
+    } else if (removerFoto && produto?.photoUrl) {
+      await fetch(`/api/store/products/${salvo.id}/photo`, { method: 'DELETE' });
+      salvo = { ...salvo, photoUrl: null };
+    }
     setSalvando(false);
-    if (!res.ok) return setErro(data.error ?? 'Não foi possível salvar o produto.');
-    onSaved(produto ? { ...produto, ...data.product } : data.product, !produto);
+    onSaved(salvo, !produto);
   }
 
   const err = (k: keyof typeof erros) => tentou && erros[k];
@@ -537,12 +632,87 @@ function ProdutoEditor({
                 </div>
               </div>
               <div
-                className="w-20 h-20 rounded-xl grid place-items-center shrink-0 pp-display font-bold text-2xl"
-                style={{ background: tom(d.category || 'x')[0], color: tom(d.category || 'x')[1] }}
+                className="w-20 h-20 rounded-xl grid place-items-center shrink-0 pp-display font-bold text-2xl overflow-hidden"
+                style={fotoAtual ? undefined : { background: tom(d.category || 'x')[0], color: tom(d.category || 'x')[1] }}
               >
-                {d.name.trim()[0]?.toUpperCase() ?? <Icon d={I.imagem} size={22} />}
+                {fotoAtual ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={fotoAtual} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  d.name.trim()[0]?.toUpperCase() ?? <Icon d={I.imagem} size={22} />
+                )}
               </div>
             </div>
+          </div>
+
+          <div>
+            <span className={label}>Foto</span>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setArrastando(true);
+              }}
+              onDragLeave={() => setArrastando(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setArrastando(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f) escolherFoto(f);
+              }}
+              className={`rounded-2xl border-[1.5px] border-dashed overflow-hidden transition-colors ${
+                arrastando ? 'border-[#1D1B1A] bg-white' : 'border-[#D6CFC8] bg-white'
+              }`}
+            >
+              {fotoAtual ? (
+                <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={fotoAtual} alt="Foto do produto" className="w-full aspect-[4/3] object-cover" />
+                  <div className="absolute bottom-2 right-2 flex gap-2">
+                    <button type="button" onClick={() => fotoInput.current?.click()} className="h-9 px-3 rounded-lg bg-white/95 text-sm font-semibold shadow">
+                      Trocar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFoto(null);
+                        setRemoverFoto(true);
+                      }}
+                      className="h-9 px-3 rounded-lg bg-white/95 text-sm font-semibold text-[#B42318] shadow"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fotoInput.current?.click()}
+                  className="w-full py-7 flex flex-col items-center gap-2 text-center hover:bg-[#FBFAF8]"
+                >
+                  <span className="w-12 h-12 rounded-xl bg-[#FEECEB] text-[#D0101F] grid place-items-center">
+                    <Icon d={I.imagem} size={22} />
+                  </span>
+                  <span className="text-sm font-semibold">Adicionar foto</span>
+                  <span className="text-xs text-[#6B6662]">Arraste aqui ou clique · PNG, JPG ou WEBP até 4 MB</span>
+                </button>
+              )}
+            </div>
+            <input
+              ref={fotoInput}
+              type="file"
+              accept={TIPOS_FOTO.join(',')}
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) escolherFoto(f);
+                e.target.value = '';
+              }}
+            />
+            {erroFoto ? (
+              <p className="text-xs text-[#B42318] mt-1.5">{erroFoto}</p>
+            ) : (
+              <p className={hint}>Foto bonita vende mais: use luz natural e mostre o produto de perto.</p>
+            )}
           </div>
 
           <div>

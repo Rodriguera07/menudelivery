@@ -1,0 +1,195 @@
+// Schema inicial — multi-tenant: cada Store é uma loja isolada (lojista)
+// Reflete o que já foi validado no protótipo (CardápioZap v4)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  tagline     String?
+  category    String?
+  logoUrl     String?
+  whatsapp    String // número que recebe os pedidos (WhatsApp Cloud API)
+  pixKey      String? // chave Pix da loja (CPF/CNPJ/e-mail/celular/aleatória) — recebe direto
+  deliveryFee Decimal  @default(0) @db.Decimal(10, 2)
+  minOrder    Decimal  @default(0) @db.Decimal(10, 2)
+  isOpen      Boolean  @default(true)
+  commissionPct Decimal @default(12) @db.Decimal(5, 2) // taxa da plataforma
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  merchant  Merchant?
+  hours     StoreHours[]
+  products  Product[]
+  coupons   Coupon[]
+  orders    Order[]
+}
+
+model StoreHours {
+  id        String  @id @default(cuid())
+  store     Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId   String
+  weekday   Int // 0 = domingo ... 6 = sábado
+  closed    Boolean @default(false)
+  openTime  String? // "10:00"
+  closeTime String? // "21:00"
+
+  @@unique([storeId, weekday])
+}
+
+// Dono da loja (login do painel admin)
+model Merchant {
+  id           String   @id @default(cuid())
+  store        Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId      String   @unique
+  ownerName    String
+  email        String   @unique
+  passwordHash String
+  twoFactor    Boolean  @default(false)
+  // Rate limiting de login: bloqueia a conta por um tempo após várias senhas erradas.
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  // 2FA por WhatsApp: código de uso único enviado ao WhatsApp da loja no login.
+  twoFactorCode          String?
+  twoFactorCodeExpiresAt DateTime?
+  createdAt    DateTime @default(now())
+}
+
+// Cliente final (compra em uma ou mais lojas)
+model Customer {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String   @unique
+  email        String?  @unique
+  passwordHash String
+  // Rate limiting de login: bloqueia a conta por um tempo após várias senhas erradas.
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  createdAt    DateTime @default(now())
+
+  addresses Address[]
+  orders    Order[]
+  favorites Favorite[]
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String
+  cep        String
+  street     String
+  number     String
+  complement String?
+  district   String
+  city       String
+  reference  String?
+  isDefault  Boolean  @default(true)
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId     String
+  name        String
+  description String?
+  category    String
+  price       Decimal  @db.Decimal(10, 2)
+  promoPrice  Decimal? @db.Decimal(10, 2)
+  photoUrl    String?
+  active      Boolean  @default(true)
+  sold        Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  favorites   Favorite[]
+  orderItems  OrderItem[]
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String
+
+  @@unique([customerId, productId])
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
+  FREE_DELIVERY
+}
+
+model Coupon {
+  id        String     @id @default(cuid())
+  store     Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId   String
+  code      String
+  type      CouponType
+  value     Decimal    @db.Decimal(10, 2)
+  minOrder  Decimal    @default(0) @db.Decimal(10, 2)
+  active    Boolean    @default(true)
+  uses      Int        @default(0)
+
+  @@unique([storeId, code])
+}
+
+enum OrderStatus {
+  RECEIVED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT
+  DEBIT
+  CASH
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  number         Int
+  store          Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId        String
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  customerId     String
+  addressSnapshot String       // endereço no momento do pedido (JSON serializado)
+  subtotal       Decimal       @db.Decimal(10, 2)
+  discount       Decimal       @default(0) @db.Decimal(10, 2)
+  deliveryFee    Decimal       @db.Decimal(10, 2)
+  total          Decimal       @db.Decimal(10, 2)
+  paymentMethod  PaymentMethod
+  changeFor      Decimal?      @db.Decimal(10, 2) // troco (dinheiro)
+  notes          String?
+  status         OrderStatus   @default(RECEIVED)
+  rating         Int? // 1-5, preenchido após entrega
+  whatsappSentAt DateTime? // quando a mensagem foi enviada de fato pela Cloud API
+  pixPaidAt      DateTime? // quando o lojista marcou o Pix como recebido (confirmação manual)
+  createdAt      DateTime      @default(now())
+
+  items OrderItem[]
+
+  @@unique([storeId, number])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  name      String // snapshot do nome no momento da compra
+  qty       Int
+  price     Decimal @db.Decimal(10, 2) // preço unitário no momento da compra
+}

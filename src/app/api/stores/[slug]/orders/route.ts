@@ -5,6 +5,7 @@ import { checkoutSchema } from '@/lib/validation';
 import { computeDiscount, unitPrice } from '@/lib/coupon';
 import { buildOrderMessage } from '@/lib/whatsapp';
 import { sendWhatsAppText } from '@/lib/whatsapp-cloud';
+import { resolveDeliveryFee } from '@/lib/delivery';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const session = await getCustomerSession();
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
   }
   const { items, couponCode, address, paymentMethod, changeFor, notes } = parsed.data;
 
-  const store = await prisma.store.findUnique({ where: { slug } });
+  const store = await prisma.store.findUnique({ where: { slug }, include: { zones: true } });
   if (!store) return NextResponse.json({ error: 'Loja não encontrada.' }, { status: 404 });
   if (!store.isOpen) return NextResponse.json({ error: 'A loja está fechada agora.' }, { status: 400 });
 
@@ -45,7 +46,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     );
   }
 
-  const deliveryFee = Number(store.deliveryFee);
+  // Taxa calculada aqui no servidor: única ou pelo bairro do endereço.
+  const entrega = resolveDeliveryFee(
+    { deliveryMode: store.deliveryMode, deliveryFee: Number(store.deliveryFee) },
+    store.zones.map((z) => ({ name: z.name, fee: Number(z.fee), active: z.active })),
+    address.district,
+  );
+  if (!entrega.ok) return NextResponse.json({ error: entrega.error }, { status: 400 });
+  const deliveryFee = entrega.fee;
   let discount = 0;
   let coupon = null as Awaited<ReturnType<typeof prisma.coupon.findFirst>> | null;
   if (couponCode) {
