@@ -13,15 +13,20 @@ export default function TwoFactorToggle({ enabled: initialEnabled }: { enabled: 
   async function toggle(next: boolean) {
     setError('');
     setLoading(true);
-    const res = await fetch('/api/store/merchant/two-factor', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: next }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (!res.ok) return setError(data.error ?? 'Não foi possível alterar.');
-    setEnabled(next);
+    try {
+      const res = await fetch('/api/store/merchant/two-factor', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return setError(data.error ?? 'Não foi possível alterar.');
+      setEnabled(next);
+    } catch {
+      setError('Falha de conexão. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

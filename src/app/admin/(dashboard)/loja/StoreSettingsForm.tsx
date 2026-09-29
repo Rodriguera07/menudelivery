@@ -132,25 +132,30 @@ export default function StoreSettingsForm({ store, children }: { store: StoreInf
       return;
     }
     setLoading(true);
-    const res = await fetch('/api/store/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: form.name.trim(),
-        whatsapp: zapDig,
-        pixKey: form.pixKey.trim(),
-        deliveryFee: porBairro ? Number(store.deliveryFee) : fee,
-        minOrder: min,
-        deliveryMode: form.deliveryMode,
-        zones: zonasNum.filter((z) => z.name.length >= 2 && z.fee >= 0),
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (!res.ok) return toast.show(data.error ?? 'Não foi possível salvar.', 'erro');
-    setSalvo(form);
-    setTentou(false);
-    toast.show('Alterações salvas');
+    try {
+      const res = await fetch('/api/store/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          whatsapp: zapDig,
+          pixKey: form.pixKey.trim(),
+          deliveryFee: porBairro ? Number(store.deliveryFee) : fee,
+          minOrder: min,
+          deliveryMode: form.deliveryMode,
+          zones: zonasNum.filter((z) => z.name.length >= 2 && z.fee >= 0),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return toast.show(data.error ?? 'Não foi possível salvar.', 'erro');
+      setSalvo(form);
+      setTentou(false);
+      toast.show('Alterações salvas');
+    } catch {
+      toast.show('Falha de conexão. Tente novamente.', 'erro');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -560,45 +565,47 @@ function BairrosEditor({
             {zonas.map((z) => {
               const semTaxa = !z.fee.trim() || !(parseBRL(z.fee) >= 0);
               return (
-                <li key={z.uid} className={`flex items-center gap-2 px-3 py-2 ${z.active ? '' : 'bg-[#FBFAF8]'}`}>
+                <li key={z.uid} className={`flex flex-wrap sm:flex-nowrap items-center gap-2 px-3 py-2.5 ${z.active ? '' : 'bg-[#FBFAF8]'}`}>
                   <input
                     aria-label="Nome do bairro"
-                    className={`flex-1 min-w-0 h-9 rounded-lg px-2 text-sm bg-transparent outline-none border border-transparent hover:border-[#E4DFDA] focus:border-[#1D1B1A] focus:bg-white ${
+                    className={`w-full sm:flex-1 sm:min-w-0 h-9 rounded-lg px-2 text-sm bg-transparent outline-none border border-transparent hover:border-[#E4DFDA] focus:border-[#1D1B1A] focus:bg-white ${
                       z.active ? 'font-semibold' : 'text-[#6B6662]'
                     }`}
                     value={z.name}
                     onChange={(e) => atualizar(z.uid, { name: e.target.value })}
                   />
-                  <div
-                    className={`w-[112px] h-9 rounded-lg border flex items-center gap-1 px-2 bg-white focus-within:border-[#1D1B1A] ${
-                      semTaxa ? 'border-[#E8A39C]' : 'border-[#E4DFDA]'
-                    }`}
-                  >
-                    <span className="text-xs text-[#6B6662]">R$</span>
-                    <input
-                      aria-label={`Taxa para ${z.name}`}
-                      inputMode="decimal"
-                      className="w-full bg-transparent outline-none pp-mono text-sm"
-                      placeholder="0,00"
-                      value={z.fee}
-                      onChange={(e) => atualizar(z.uid, { fee: e.target.value })}
+                  <div className="flex items-center gap-2 ml-auto sm:ml-0">
+                    <div
+                      className={`w-[112px] h-9 rounded-lg border flex items-center gap-1 px-2 bg-white focus-within:border-[#1D1B1A] ${
+                        semTaxa ? 'border-[#E8A39C]' : 'border-[#E4DFDA]'
+                      }`}
+                    >
+                      <span className="text-xs text-[#6B6662]">R$</span>
+                      <input
+                        aria-label={`Taxa para ${z.name}`}
+                        inputMode="decimal"
+                        className="w-full bg-transparent outline-none pp-mono text-sm"
+                        placeholder="0,00"
+                        value={z.fee}
+                        onChange={(e) => atualizar(z.uid, { fee: e.target.value })}
+                      />
+                    </div>
+                    <Switch
+                      size="sm"
+                      checked={z.active}
+                      label={z.active ? `Pausar entrega em ${z.name}` : `Voltar a entregar em ${z.name}`}
+                      onChange={(v) => atualizar(z.uid, { active: v })}
                     />
+                    <button
+                      type="button"
+                      onClick={() => onChange(zonas.filter((x) => x.uid !== z.uid))}
+                      aria-label={`Remover ${z.name}`}
+                      title="Remover"
+                      className="w-8 h-8 rounded-lg grid place-items-center text-[#5E5A57] hover:bg-[#FEECEB] hover:text-[#B42318]"
+                    >
+                      <Icon d={I.x} size={15} />
+                    </button>
                   </div>
-                  <Switch
-                    size="sm"
-                    checked={z.active}
-                    label={z.active ? `Pausar entrega em ${z.name}` : `Voltar a entregar em ${z.name}`}
-                    onChange={(v) => atualizar(z.uid, { active: v })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => onChange(zonas.filter((x) => x.uid !== z.uid))}
-                    aria-label={`Remover ${z.name}`}
-                    title="Remover"
-                    className="w-8 h-8 rounded-lg grid place-items-center text-[#5E5A57] hover:bg-[#FEECEB] hover:text-[#B42318]"
-                  >
-                    <Icon d={I.x} size={15} />
-                  </button>
                 </li>
               );
             })}

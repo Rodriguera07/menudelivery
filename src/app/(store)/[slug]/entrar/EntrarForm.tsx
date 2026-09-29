@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LogoMark } from '@/components/Logo';
-import { LockIcon } from '@/components/icons';
+import { LjRoot, Svg, I, ljInput, ljBtnPrimary } from '../ljTheme';
 
 type Tab = 'signup' | 'login';
 
@@ -31,63 +31,70 @@ export default function EntrarForm({
     e.preventDefault();
     setError('');
     setLoading(true);
-    const res = await fetch('/api/auth/customer/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(signupForm),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) return setError(data.error ?? 'Não foi possível criar sua conta.');
-    router.push(next);
-    router.refresh();
+    try {
+      const res = await fetch('/api/auth/customer/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signupForm),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return setError(data.error ?? 'Não foi possível criar sua conta.');
+      router.push(next);
+      router.refresh();
+    } catch {
+      setError('Falha de conexão. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function submitLogin(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const res = await fetch('/api/auth/customer/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(loginForm),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) return setError(data.error ?? 'Não foi possível entrar.');
-    router.push(next);
-    router.refresh();
+    try {
+      const res = await fetch('/api/auth/customer/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginForm),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return setError(data.error ?? 'Não foi possível entrar.');
+      router.push(next);
+      router.refresh();
+    } catch {
+      setError('Falha de conexão. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main className="min-h-screen bg-brand-wash flex items-center justify-center p-6">
-      <div className="w-full max-w-md animate-fade-in-up">
-        <Link href={`/${slug}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted mb-4 hover:text-ink transition-colors">
-          ← Voltar ao cardápio
+    <LjRoot className="flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-md lj-fade">
+        <Link href={`/${slug}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#5E5A57] mb-4 hover:text-[#1D1B1A] transition-colors">
+          <Svg d={I.voltar} size={16} /> Voltar ao cardápio
         </Link>
 
-        <div className="bg-surface rounded-3xl shadow-lg overflow-hidden">
-          <div
-            className="p-6 text-white"
-            style={{ background: 'linear-gradient(150deg, #EA1D2C 0%, #F04A2E 55%, #FF8A00 100%)' }}
-          >
-            <h1 className="font-display text-xl font-extrabold">{storeName}</h1>
-            <p className="text-sm opacity-90">{storeTagline}. Faça seu pedido e receba em casa.</p>
+        <div className="bg-white rounded-[20px] border border-[#ECE7E2] shadow-[0_12px_32px_rgba(29,27,26,.06)] overflow-hidden">
+          <div className="lj-cover p-6 text-white">
+            <h1 className="lj-display text-xl font-extrabold">{storeName}</h1>
+            {storeTagline && <p className="text-sm opacity-90 mt-0.5">{storeTagline}. Faça seu pedido e receba em casa.</p>}
           </div>
 
           <div className="p-6">
-            <div className="flex gap-2 mb-5 bg-surface2 rounded-xl p-1">
+            <div className="flex gap-2 mb-5 bg-[#F1EEEB] rounded-xl p-1">
               <button
                 type="button"
                 onClick={() => { setTab('signup'); setError(''); }}
-                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${tab === 'signup' ? 'bg-surface shadow text-ink' : 'text-muted'}`}
+                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${tab === 'signup' ? 'bg-white shadow text-[#1D1B1A]' : 'text-[#5E5A57]'}`}
               >
                 Criar conta
               </button>
               <button
                 type="button"
                 onClick={() => { setTab('login'); setError(''); }}
-                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${tab === 'login' ? 'bg-surface shadow text-ink' : 'text-muted'}`}
+                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${tab === 'login' ? 'bg-white shadow text-[#1D1B1A]' : 'text-[#5E5A57]'}`}
               >
                 Já tenho conta
               </button>
@@ -98,7 +105,7 @@ export default function EntrarForm({
                 <Field label="Nome completo">
                   <input
                     required
-                    className="input"
+                    className={ljInput}
                     value={signupForm.name}
                     onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
                   />
@@ -108,7 +115,7 @@ export default function EntrarForm({
                     required
                     inputMode="tel"
                     placeholder="(13) 90000-0000"
-                    className="input"
+                    className={ljInput}
                     value={signupForm.phone}
                     onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
                   />
@@ -116,7 +123,7 @@ export default function EntrarForm({
                 <Field label="E-mail (opcional)">
                   <input
                     type="email"
-                    className="input"
+                    className={ljInput}
                     value={signupForm.email}
                     onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                   />
@@ -126,13 +133,13 @@ export default function EntrarForm({
                     type="password"
                     required
                     placeholder="mín. 6 caracteres"
-                    className="input"
+                    className={ljInput}
                     value={signupForm.password}
                     onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
                   />
                 </Field>
-                {error && <p className="text-sm text-brand">{error}</p>}
-                <button disabled={loading} className="btn-primary w-full">
+                {error && <p role="alert" className="text-sm font-semibold text-[#B42318]">{error}</p>}
+                <button disabled={loading} className={`${ljBtnPrimary} w-full`}>
                   {loading ? 'Criando…' : 'Criar conta e continuar'}
                 </button>
               </form>
@@ -141,7 +148,7 @@ export default function EntrarForm({
                 <Field label="WhatsApp ou e-mail">
                   <input
                     required
-                    className="input"
+                    className={ljInput}
                     value={loginForm.identifier}
                     onChange={(e) => setLoginForm({ ...loginForm, identifier: e.target.value })}
                   />
@@ -150,19 +157,19 @@ export default function EntrarForm({
                   <input
                     type="password"
                     required
-                    className="input"
+                    className={ljInput}
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                   />
                 </Field>
-                {error && <p className="text-sm text-brand">{error}</p>}
-                <button disabled={loading} className="btn-primary w-full">
+                {error && <p role="alert" className="text-sm font-semibold text-[#B42318]">{error}</p>}
+                <button disabled={loading} className={`${ljBtnPrimary} w-full`}>
                   {loading ? 'Entrando…' : 'Entrar'}
                 </button>
               </form>
             )}
-            <p className="flex items-center justify-center gap-1.5 text-xs text-muted mt-4">
-              <LockIcon className="w-3.5 h-3.5 shrink-0" />
+            <p className="flex items-center justify-center gap-1.5 text-xs text-[#5E5A57] mt-4">
+              <Svg d={I.cadeado} size={14} />
               Seus dados ficam protegidos e são usados só por esta loja.
             </p>
           </div>
@@ -170,17 +177,17 @@ export default function EntrarForm({
 
         <div className="flex items-center justify-center gap-1.5 mt-5 opacity-70">
           <LogoMark size={18} />
-          <span className="text-xs font-semibold text-muted">Uma loja no CardápioZap</span>
+          <span className="text-xs font-semibold text-[#5E5A57]">Uma loja no CardápioZap</span>
         </div>
       </div>
-    </main>
+    </LjRoot>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-ink mb-1">{label}</span>
+      <span className="block text-sm font-medium text-[#1D1B1A] mb-1">{label}</span>
       {children}
     </label>
   );

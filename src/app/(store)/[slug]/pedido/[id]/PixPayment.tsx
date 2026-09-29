@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Svg, I, ljCard, ljBtnPrimary } from '../../ljTheme';
 
 export default function PixPayment({
   slug,
@@ -21,37 +22,45 @@ export default function PixPayment({
   useEffect(() => {
     if (paid) return;
     const interval = setInterval(async () => {
-      const res = await fetch(`/api/stores/${slug}/orders/${orderId}/status`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.paid) setPaid(true);
+      try {
+        const res = await fetch(`/api/stores/${slug}/orders/${orderId}/status`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.paid) setPaid(true);
+      } catch {
+        // silencioso: só uma tentativa de polling falhou, a próxima tenta de novo
+      }
     }, 4000);
     return () => clearInterval(interval);
   }, [paid, slug, orderId]);
 
   async function copyCode() {
-    await navigator.clipboard.writeText(pixCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(pixCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard indisponível (ex.: contexto sem HTTPS) — sem crash, só não copia
+    }
   }
 
   if (paid) {
     return (
-      <div className="bg-green-soft text-green rounded-2xl p-4 text-center text-sm font-semibold">
-        Pagamento Pix confirmado ✓
+      <div className="bg-[#E7F6EE] text-[#177245] rounded-2xl p-4 text-center text-sm font-semibold flex items-center justify-center gap-2">
+        <Svg d={I.check} size={16} /> Pagamento Pix confirmado
       </div>
     );
   }
 
   return (
-    <div className="bg-surface rounded-2xl p-4 text-center space-y-3">
+    <div className={`${ljCard} p-4 text-center space-y-3`}>
       <h4 className="font-semibold text-sm">Pague com Pix para confirmar o pedido</h4>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={qrCodeDataUrl} alt="QR Code Pix" className="w-48 h-48 mx-auto rounded-lg border border-line" />
-      <button onClick={copyCode} className="btn-primary w-full">
-        {copied ? 'Código copiado!' : 'Copiar código Pix'}
+      <img src={qrCodeDataUrl} alt="QR Code Pix" className="w-48 h-48 mx-auto rounded-lg border border-[#ECE7E2]" />
+      <button onClick={copyCode} className={`${ljBtnPrimary} w-full`}>
+        <Svg d={copied ? I.check : I.copiar} size={16} /> {copied ? 'Código copiado!' : 'Copiar código Pix'}
       </button>
-      <p className="text-xs text-muted">Aguardando o lojista confirmar o recebimento…</p>
+      <p className="text-xs text-[#5E5A57]">Aguardando o lojista confirmar o recebimento…</p>
     </div>
   );
 }

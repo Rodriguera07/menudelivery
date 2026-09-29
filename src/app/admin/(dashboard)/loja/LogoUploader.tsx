@@ -31,32 +31,44 @@ export default function LogoUploader({
     setPreview(local);
     onChange?.(local);
     setLoading(true);
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('/api/store/logo', { method: 'POST', body: form });
-    const data = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error ?? 'Não foi possível enviar a imagem.');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/store/logo', { method: 'POST', body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? 'Não foi possível enviar a imagem.');
+        setPreview(logoUrl);
+        onChange?.(logoUrl);
+        return;
+      }
+      setPreview(data.logoUrl);
+      onChange?.(data.logoUrl);
+      router.refresh();
+    } catch {
+      setError('Falha de conexão. Tente novamente.');
       setPreview(logoUrl);
       onChange?.(logoUrl);
-      return;
+    } finally {
+      setLoading(false);
     }
-    setPreview(data.logoUrl);
-    onChange?.(data.logoUrl);
-    router.refresh();
   }
 
   async function removeLogo() {
     setLoading(true);
-    const res = await fetch('/api/store/logo', { method: 'DELETE' });
-    setLoading(false);
-    if (res.ok) {
-      setPreview(null);
-      onChange?.(null);
-      router.refresh();
-    } else {
-      setError('Não foi possível remover a logo.');
+    try {
+      const res = await fetch('/api/store/logo', { method: 'DELETE' });
+      if (res.ok) {
+        setPreview(null);
+        onChange?.(null);
+        router.refresh();
+      } else {
+        setError('Não foi possível remover a logo.');
+      }
+    } catch {
+      setError('Falha de conexão. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   }
 

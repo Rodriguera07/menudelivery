@@ -40,15 +40,20 @@ export default function StoreHoursEditor({ initialHours }: { initialHours: DayHo
   async function save() {
     if (hours.some(invalido)) return toast.show('Confira os horários destacados.', 'erro');
     setLoading(true);
-    const res = await fetch('/api/store/hours', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(hours),
-    });
-    setLoading(false);
-    if (!res.ok) return toast.show('Não foi possível salvar o horário.', 'erro');
-    setSalvo(hours);
-    toast.show('Horário salvo');
+    try {
+      const res = await fetch('/api/store/hours', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(hours),
+      });
+      if (!res.ok) return toast.show('Não foi possível salvar o horário.', 'erro');
+      setSalvo(hours);
+      toast.show('Horário salvo');
+    } catch {
+      toast.show('Falha de conexão. Tente novamente.', 'erro');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const abertos = hours.filter((d) => !d.closed).length;

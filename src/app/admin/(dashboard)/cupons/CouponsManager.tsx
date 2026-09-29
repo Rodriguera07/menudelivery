@@ -82,39 +82,50 @@ export default function CouponsManager({ initialCoupons }: { initialCoupons: Cou
     setErroServidor('');
     if (!valido) return;
     setLoading(true);
-    const res = await fetch('/api/store/coupons', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: form.code, type: form.type, value: form.type === 'FREE_DELIVERY' ? 0 : valor, minOrder: minimo }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível criar o cupom.');
-    setCoupons((prev) => [{ ...data.coupon, value: Number(data.coupon.value), minOrder: Number(data.coupon.minOrder) }, ...prev]);
-    setForm({ code: '', type: form.type, value: '', minOrder: '' });
-    setTentou(false);
-    toast.show(`Cupom ${data.coupon.code} criado`);
+    try {
+      const res = await fetch('/api/store/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: form.code, type: form.type, value: form.type === 'FREE_DELIVERY' ? 0 : valor, minOrder: minimo }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível criar o cupom.');
+      setCoupons((prev) => [{ ...data.coupon, value: Number(data.coupon.value), minOrder: Number(data.coupon.minOrder) }, ...prev]);
+      setForm({ code: '', type: form.type, value: '', minOrder: '' });
+      setTentou(false);
+      toast.show(`Cupom ${data.coupon.code} criado`);
+    } catch {
+      setErroServidor('Falha de conexão. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function toggleActive(c: Coupon, next: boolean) {
     setCoupons((prev) => prev.map((x) => (x.id === c.id ? { ...x, active: next } : x)));
-    const res = await fetch(`/api/store/coupons/${c.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active: next }),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/store/coupons/${c.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: next }),
+      });
+      if (!res.ok) throw new Error();
+      toast.show(next ? `${c.code} ativado` : `${c.code} desativado — não vale mais no carrinho`);
+    } catch {
       setCoupons((prev) => prev.map((x) => (x.id === c.id ? { ...x, active: !next } : x)));
-      return toast.show('Não foi possível alterar o cupom.', 'erro');
+      toast.show('Não foi possível alterar o cupom.', 'erro');
     }
-    toast.show(next ? `${c.code} ativado` : `${c.code} desativado — não vale mais no carrinho`);
   }
 
   async function removeCoupon(c: Coupon) {
-    const res = await fetch(`/api/store/coupons/${c.id}`, { method: 'DELETE' });
-    if (!res.ok) return toast.show('Não foi possível remover o cupom.', 'erro');
-    setCoupons((prev) => prev.filter((x) => x.id !== c.id));
-    toast.show(`Cupom ${c.code} removido`);
+    try {
+      const res = await fetch(`/api/store/coupons/${c.id}`, { method: 'DELETE' });
+      if (!res.ok) return toast.show('Não foi possível remover o cupom.', 'erro');
+      setCoupons((prev) => prev.filter((x) => x.id !== c.id));
+      toast.show(`Cupom ${c.code} removido`);
+    } catch {
+      toast.show('Falha de conexão. Tente novamente.', 'erro');
+    }
   }
 
   const err = (k: keyof typeof erros) => tentou && erros[k];

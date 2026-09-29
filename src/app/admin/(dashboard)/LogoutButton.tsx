@@ -6,7 +6,11 @@ export default function LogoutButton() {
   const router = useRouter();
 
   async function logout() {
-    await fetch('/api/auth/merchant/logout', { method: 'POST' });
+    try {
+      await fetch('/api/auth/merchant/logout', { method: 'POST' });
+    } catch {
+      // sem conexão: segue e redireciona mesmo assim, o cookie expira sozinho
+    }
     router.push('/admin/login');
     router.refresh();
   }

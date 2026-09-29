@@ -16,22 +16,37 @@ export default function HeaderControls({
 }) {
   const [aberta, setAberta] = useState(initialIsOpen);
   const [copiado, setCopiado] = useState(false);
+  const [erro, setErro] = useState('');
   const linkLoja = `/${slug}`;
 
   async function toggleAberta() {
     const next = !aberta;
     setAberta(next);
-    await fetch('/api/store/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isOpen: next }),
-    });
+    setErro('');
+    try {
+      const res = await fetch('/api/store/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isOpen: next }),
+      });
+      if (!res.ok) {
+        setAberta(!next);
+        setErro('Não foi possível atualizar. Tente de novo.');
+      }
+    } catch {
+      setAberta(!next);
+      setErro('Falha de conexão. Tente novamente.');
+    }
   }
 
   async function copiarLink() {
-    await navigator.clipboard.writeText(new URL(linkLoja, window.location.origin).toString());
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 1800);
+    try {
+      await navigator.clipboard.writeText(new URL(linkLoja, window.location.origin).toString());
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 1800);
+    } catch {
+      // clipboard indisponível — sem crash, só não copia
+    }
   }
 
   return (
@@ -46,6 +61,7 @@ export default function HeaderControls({
         <span className={`w-2 h-2 rounded-full ${aberta ? 'bg-[#177245]' : 'bg-[#5E5A57]'}`} />
         {aberta ? 'Loja aberta' : 'Loja fechada'}
       </button>
+      {erro && <span className="text-[12px] font-semibold text-[#B42318] shrink-0">{erro}</span>}
 
       <div className="flex-1 order-last sm:order-none w-full sm:w-auto" />
 

@@ -46,31 +46,43 @@ export default function BannerUploader({
     conferirTamanho(local);
     onChange?.(local);
     setLoading(true);
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('/api/store/banner', { method: 'POST', body: form });
-    const data = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error ?? 'Não foi possível enviar o banner.');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/store/banner', { method: 'POST', body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? 'Não foi possível enviar o banner.');
+        setPreview(bannerUrl);
+        onChange?.(bannerUrl);
+        return;
+      }
+      setPreview(data.bannerUrl);
+      onChange?.(data.bannerUrl);
+      router.refresh();
+    } catch {
+      setError('Falha de conexão. Tente novamente.');
       setPreview(bannerUrl);
       onChange?.(bannerUrl);
-      return;
+    } finally {
+      setLoading(false);
     }
-    setPreview(data.bannerUrl);
-    onChange?.(data.bannerUrl);
-    router.refresh();
   }
 
   async function remover() {
     setLoading(true);
-    const res = await fetch('/api/store/banner', { method: 'DELETE' });
-    setLoading(false);
-    if (!res.ok) return setError('Não foi possível remover o banner.');
-    setPreview(null);
-    setAviso('');
-    onChange?.(null);
-    router.refresh();
+    try {
+      const res = await fetch('/api/store/banner', { method: 'DELETE' });
+      if (!res.ok) return setError('Não foi possível remover o banner.');
+      setPreview(null);
+      setAviso('');
+      onChange?.(null);
+      router.refresh();
+    } catch {
+      setError('Falha de conexão. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

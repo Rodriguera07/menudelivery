@@ -28,9 +28,13 @@ function checarFoto(f: File) {
 async function enviarFoto(id: string, file: File): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch(`/api/store/products/${id}/photo`, { method: 'POST', body: form });
-  const data = await res.json().catch(() => ({}));
-  return res.ok ? { ok: true, url: data.photoUrl } : { ok: false, error: data.error ?? 'Não foi possível enviar a foto.' };
+  try {
+    const res = await fetch(`/api/store/products/${id}/photo`, { method: 'POST', body: form });
+    const data = await res.json().catch(() => ({}));
+    return res.ok ? { ok: true, url: data.photoUrl } : { ok: false, error: data.error ?? 'Não foi possível enviar a foto.' };
+  } catch {
+    return { ok: false, error: 'Falha de conexão. Tente novamente.' };
+  }
 }
 
 type Draft = { name: string; category: string; description: string; price: string; promoPrice: string };
@@ -114,26 +118,35 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
   }
 
   async function updateProduct(id: string, patch: Record<string, unknown>, okMsg = 'Salvo') {
-    const res = await fetch(`/api/store/products/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patch),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      toast.show(data.error ?? 'Não foi possível salvar. Tente de novo.', 'erro');
+    try {
+      const res = await fetch(`/api/store/products/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.show(data.error ?? 'Não foi possível salvar. Tente de novo.', 'erro');
+        return false;
+      }
+      setProducts((prev) => prev.map((p) => (p.id === id ? normalizeProduct({ ...p, ...data.product }) : p)));
+      toast.show(okMsg);
+      return true;
+    } catch {
+      toast.show('Falha de conexão. Tente novamente.', 'erro');
       return false;
     }
-    setProducts((prev) => prev.map((p) => (p.id === id ? normalizeProduct({ ...p, ...data.product }) : p)));
-    toast.show(okMsg);
-    return true;
   }
 
   async function deleteProduct(id: string) {
-    const res = await fetch(`/api/store/products/${id}`, { method: 'DELETE' });
-    if (!res.ok) return toast.show('Não foi possível remover o produto.', 'erro');
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    toast.show('Produto removido do cardápio');
+    try {
+      const res = await fetch(`/api/store/products/${id}`, { method: 'DELETE' });
+      if (!res.ok) return toast.show('Não foi possível remover o produto.', 'erro');
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      toast.show('Produto removido do cardápio');
+    } catch {
+      toast.show('Falha de conexão. Tente novamente.', 'erro');
+    }
   }
 
   const editando = editor?.id ? products.find((p) => p.id === editor.id) ?? null : null;
@@ -560,35 +573,39 @@ function ProdutoEditor({
     setErro('');
     if (!valido) return;
     setSalvando(true);
-    const body = {
-      name: d.name.trim(),
-      category: d.category.trim(),
-      description: d.description.trim(),
-      price: preco,
-      promoPrice: promo,
-    };
-    const res = await fetch(produto ? `/api/store/products/${produto.id}` : '/api/store/products', {
-      method: produto ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
+    try {
+      const body = {
+        name: d.name.trim(),
+        category: d.category.trim(),
+        description: d.description.trim(),
+        price: preco,
+        promoPrice: promo,
+      };
+      const res = await fetch(produto ? `/api/store/products/${produto.id}` : '/api/store/products', {
+        method: produto ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return setErro(data.error ?? 'Não foi possível salvar o produto.');
+      }
+      let salvo: Product = produto ? { ...produto, ...data.product } : data.product;
+      // Foto vai depois, porque um produto novo só tem id depois de criado.
+      if (foto) {
+        const r = await enviarFoto(salvo.id, foto.file);
+        if (r.ok) salvo = { ...salvo, photoUrl: r.url };
+        else setErro(`Produto salvo, mas a foto não foi enviada: ${r.error}`);
+      } else if (removerFoto && produto?.photoUrl) {
+        await fetch(`/api/store/products/${salvo.id}/photo`, { method: 'DELETE' }).catch(() => {});
+        salvo = { ...salvo, photoUrl: null };
+      }
+      onSaved(salvo, !produto);
+    } catch {
+      setErro('Falha de conexão. Tente novamente.');
+    } finally {
       setSalvando(false);
-      return setErro(data.error ?? 'Não foi possível salvar o produto.');
     }
-    let salvo: Product = produto ? { ...produto, ...data.product } : data.product;
-    // Foto vai depois, porque um produto novo só tem id depois de criado.
-    if (foto) {
-      const r = await enviarFoto(salvo.id, foto.file);
-      if (r.ok) salvo = { ...salvo, photoUrl: r.url };
-      else setErro(`Produto salvo, mas a foto não foi enviada: ${r.error}`);
-    } else if (removerFoto && produto?.photoUrl) {
-      await fetch(`/api/store/products/${salvo.id}/photo`, { method: 'DELETE' });
-      salvo = { ...salvo, photoUrl: null };
-    }
-    setSalvando(false);
-    onSaved(salvo, !produto);
   }
 
   const err = (k: keyof typeof erros) => tentou && erros[k];

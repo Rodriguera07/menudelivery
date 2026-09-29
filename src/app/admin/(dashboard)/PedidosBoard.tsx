@@ -51,24 +51,39 @@ export default function PedidosBoard({ slug, pedidos, stats }: { slug: string; p
   const [confirmarId, setConfirmarId] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [erro, setErro] = useState('');
 
   async function mudarStatus(id: string, status: OrderStatus) {
     setConfirmarId(null);
     setBusyId(id);
-    const res = await fetch(`/api/store/orders/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    setBusyId(null);
-    if (res.ok) router.refresh();
+    setErro('');
+    try {
+      const res = await fetch(`/api/store/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) router.refresh();
+      else setErro('Não foi possível atualizar o pedido. Tente de novo.');
+    } catch {
+      setErro('Falha de conexão. Tente novamente.');
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function marcarPixPago(id: string) {
     setBusyId(id);
-    const res = await fetch(`/api/store/orders/${id}/pix-paid`, { method: 'PATCH' });
-    setBusyId(null);
-    if (res.ok) router.refresh();
+    setErro('');
+    try {
+      const res = await fetch(`/api/store/orders/${id}/pix-paid`, { method: 'PATCH' });
+      if (res.ok) router.refresh();
+      else setErro('Não foi possível confirmar o Pix. Tente de novo.');
+    } catch {
+      setErro('Falha de conexão. Tente novamente.');
+    } finally {
+      setBusyId(null);
+    }
   }
 
   const q = busca.trim().toLowerCase();
@@ -115,10 +130,16 @@ export default function PedidosBoard({ slug, pedidos, stats }: { slug: string; p
         </span>
       </div>
 
+      {erro && (
+        <p role="alert" className="text-sm font-semibold text-[#7A1A12] bg-[#FEECEB] rounded-xl px-3.5 py-2.5">
+          {erro}
+        </p>
+      )}
+
       {pedidos.length === 0 ? (
         <EstadoVazio storeUrl={storeUrl} />
       ) : (
-        <section aria-label="Quadro de pedidos" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <section aria-label="Quadro de pedidos" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {porColuna.map(({ st, lista }) => {
             const col = COLUNAS[st];
             return (

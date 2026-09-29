@@ -315,51 +315,65 @@ function LoginLojista() {
     if (!(emailOk && senha)) return;
     setCarregando(true);
     setErroServidor('');
-    const res = await fetch('/api/auth/merchant/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: senha }),
-    });
-    const data = await res.json();
-    setCarregando(false);
-    if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível entrar.');
-    if (data.twoFactorRequired) {
-      setTwoFactorStep(true);
-      setTwoFactorWarning(!data.whatsappSent);
-      return;
+    try {
+      const res = await fetch('/api/auth/merchant/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: senha }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível entrar.');
+      if (data.twoFactorRequired) {
+        setTwoFactorStep(true);
+        setTwoFactorWarning(!data.whatsappSent);
+        return;
+      }
+      setConcluido(true);
+      setTimeout(() => {
+        router.push('/admin');
+        router.refresh();
+      }, 900);
+    } catch {
+      setErroServidor('Falha de conexão. Tente novamente.');
+    } finally {
+      setCarregando(false);
     }
-    setConcluido(true);
-    setTimeout(() => {
-      router.push('/admin');
-      router.refresh();
-    }, 900);
   };
 
   const confirmarCodigo = async (e: FormEvent) => {
     e.preventDefault();
     setCarregando(true);
     setErroServidor('');
-    const res = await fetch('/api/auth/merchant/verify-2fa', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
-    const data = await res.json();
-    setCarregando(false);
-    if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível confirmar o código.');
-    setConcluido(true);
-    setTimeout(() => {
-      router.push('/admin');
-      router.refresh();
-    }, 900);
+    try {
+      const res = await fetch('/api/auth/merchant/verify-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível confirmar o código.');
+      setConcluido(true);
+      setTimeout(() => {
+        router.push('/admin');
+        router.refresh();
+      }, 900);
+    } catch {
+      setErroServidor('Falha de conexão. Tente novamente.');
+    } finally {
+      setCarregando(false);
+    }
   };
 
   const reenviarCodigo = async () => {
     setErroServidor('');
-    const res = await fetch('/api/auth/merchant/resend-2fa', { method: 'POST' });
-    const data = await res.json();
-    if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível reenviar o código.');
-    setTwoFactorWarning(!data.whatsappSent);
+    try {
+      const res = await fetch('/api/auth/merchant/resend-2fa', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível reenviar o código.');
+      setTwoFactorWarning(!data.whatsappSent);
+    } catch {
+      setErroServidor('Falha de conexão. Tente novamente.');
+    }
   };
 
   const continuar = () => {
@@ -375,26 +389,31 @@ function LoginLojista() {
     if (!etapa2Ok) return;
     setCarregando(true);
     setErroServidor('');
-    const res = await fetch('/api/auth/merchant/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        storeName: nomeLoja.trim(),
-        category: categoria,
-        ownerName: nomeResponsavel.trim(),
-        whatsapp: digitos,
-        email,
-        password: senha,
-      }),
-    });
-    const data = await res.json();
-    setCarregando(false);
-    if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível criar a loja.');
-    setConcluido(true);
-    setTimeout(() => {
-      router.push('/admin/bem-vindo');
-      router.refresh();
-    }, 900);
+    try {
+      const res = await fetch('/api/auth/merchant/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeName: nomeLoja.trim(),
+          category: categoria,
+          ownerName: nomeResponsavel.trim(),
+          whatsapp: digitos,
+          email,
+          password: senha,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return setErroServidor(data.error ?? 'Não foi possível criar a loja.');
+      setConcluido(true);
+      setTimeout(() => {
+        router.push('/admin/bem-vindo');
+        router.refresh();
+      }, 900);
+    } catch {
+      setErroServidor('Falha de conexão. Tente novamente.');
+    } finally {
+      setCarregando(false);
+    }
   };
 
   return (
