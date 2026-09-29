@@ -1,0 +1,89 @@
+'use client';
+
+import { useState } from 'react';
+import { ClockIcon } from '@/components/icons';
+
+const WEEK_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+type DayHours = { weekday: number; closed: boolean; openTime: string; closeTime: string };
+
+export default function StoreHoursEditor({ initialHours }: { initialHours: DayHours[] }) {
+  const [hours, setHours] = useState(initialHours);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  function updateDay(weekday: number, patch: Partial<DayHours>) {
+    setSaved(false);
+    setHours((prev) => prev.map((d) => (d.weekday === weekday ? { ...d, ...patch } : d)));
+  }
+
+  async function save() {
+    setLoading(true);
+    setSaved(false);
+    const res = await fetch('/api/store/hours', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(hours),
+    });
+    setLoading(false);
+    if (res.ok) setSaved(true);
+  }
+
+  return (
+    <div className="bg-surface rounded-2xl p-4 border-l-4 border-green card-hover">
+      <div className="flex gap-3 mb-4">
+        <div className="w-9 h-9 rounded-lg bg-green-soft text-green grid place-items-center shrink-0">
+          <ClockIcon className="w-4.5 h-4.5" />
+        </div>
+        <div>
+          <b className="text-sm block">Horário de funcionamento</b>
+          <p className="text-xs text-muted mt-0.5">Desmarque um dia para fechar a loja automaticamente nele.</p>
+        </div>
+      </div>
+      <table className="w-full text-sm">
+        <tbody>
+          {hours.map((d) => (
+            <tr key={d.weekday} className="border-b border-line last:border-0">
+              <td className="py-2 pr-3 font-semibold">{WEEK_LABELS[d.weekday]}</td>
+              <td className="py-2 pr-3">
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={!d.closed}
+                    onChange={(e) => updateDay(d.weekday, { closed: !e.target.checked })}
+                  />
+                  {d.closed ? 'Fechado' : 'Aberto'}
+                </label>
+              </td>
+              <td className="py-2 pr-2">
+                <input
+                  type="time"
+                  className="input"
+                  value={d.openTime}
+                  disabled={d.closed}
+                  onChange={(e) => updateDay(d.weekday, { openTime: e.target.value })}
+                />
+              </td>
+              <td className="py-2 px-1 text-dim text-center">–</td>
+              <td className="py-2">
+                <input
+                  type="time"
+                  className="input"
+                  value={d.closeTime}
+                  disabled={d.closed}
+                  onChange={(e) => updateDay(d.weekday, { closeTime: e.target.value })}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="flex items-center gap-3 mt-3">
+        <button onClick={save} disabled={loading} className="btn-primary">
+          {loading ? 'Salvando…' : 'Salvar horário'}
+        </button>
+        {saved && <span className="text-sm text-green">Salvo!</span>}
+      </div>
+    </div>
+  );
+}

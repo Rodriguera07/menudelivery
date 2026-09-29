@@ -1,0 +1,166 @@
+'use client';
+
+import { useState } from 'react';
+import { formatBRL, parseBRL } from '@/lib/format';
+import { COUPON_TYPES } from '@/lib/validation';
+
+type CouponType = (typeof COUPON_TYPES)[number];
+
+type Coupon = {
+  id: string;
+  code: string;
+  type: CouponType;
+  value: number;
+  minOrder: number;
+  active: boolean;
+  uses: number;
+};
+
+const TYPE_LABELS: Record<CouponType, string> = {
+  PERCENT: '% de desconto',
+  FIXED: 'Valor fixo (R$)',
+  FREE_DELIVERY: 'Entrega grátis',
+};
+
+function couponDesc(c: Coupon) {
+  if (c.type === 'PERCENT') return `${c.value}% de desconto`;
+  if (c.type === 'FIXED') return `${formatBRL(c.value)} de desconto`;
+  return 'Entrega grátis';
+}
+
+export default function CouponsManager({ initialCoupons }: { initialCoupons: Coupon[] }) {
+  const [coupons, setCoupons] = useState(initialCoupons);
+  const [form, setForm] = useState({ code: '', type: 'PERCENT' as CouponType, value: '', minOrder: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function addCoupon(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (!form.code.trim()) return setError('Informe um código.');
+    setLoading(true);
+    const res = await fetch('/api/store/coupons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: form.code,
+        type: form.type,
+        value: form.type === 'FREE_DELIVERY' ? 0 : parseBRL(form.value || '0'),
+        minOrder: form.minOrder ? parseBRL(form.minOrder) : 0,
+      }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) return setError(data.error ?? 'Não foi possível criar o cupom.');
+    setCoupons([
+      { ...data.coupon, value: Number(data.coupon.value), minOrder: Number(data.coupon.minOrder) },
+      ...coupons,
+    ]);
+    setForm({ code: '', type: 'PERCENT', value: '', minOrder: '' });
+  }
+
+  async function toggleActive(c: Coupon) {
+    const res = await fetch(`/api/store/coupons/${c.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: !c.active }),
+    });
+    if (res.ok) setCoupons((prev) => prev.map((x) => (x.id === c.id ? { ...x, active: !x.active } : x)));
+  }
+
+  async function removeCoupon(id: string) {
+    if (!confirm('Remover este cupom?')) return;
+    const res = await fetch(`/api/store/coupons/${id}`, { method: 'DELETE' });
+    if (res.ok) setCoupons((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <div>
+        {coupons.length === 0 ? (
+          <div className="bg-surface rounded-2xl p-6 text-center">
+            <b>Nenhum cupom criado</b>
+            <p className="text-muted text-sm mt-1">Crie o primeiro cupom ao lado.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {coupons.map((c) => (
+              <div key={c.id} className="bg-surface rounded-2xl p-3 flex items-center justify-between">
+                <div>
+                  <code className="font-mono font-bold">{c.code}</code>
+                  <div className="text-xs text-muted">
+                    {couponDesc(c)} · mín. {formatBRL(c.minOrder)}
+                    <br />
+                    {c.uses} usos
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleActive(c)}
+                    className={`text-xs font-semibold px-2 py-1 rounded-full ${c.active ? 'bg-green-soft text-green' : 'bg-surface2 text-muted'}`}
+                  >
+                    {c.active ? 'Ativo' : 'Off'}
+                  </button>
+                  <button onClick={() => removeCoupon(c.id)} className="text-xs text-brand font-semibold">
+                    Remover
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={addCoupon} className="bg-surface rounded-2xl p-4 space-y-3 self-start">
+        <b className="text-sm block">Criar cupom</b>
+        <label className="block">
+          <span className="block text-sm font-medium text-ink mb-1">Código</span>
+          <input
+            className="input font-mono uppercase"
+            placeholder="SEXTOU15"
+            value={form.code}
+            onChange={(e) => setForm({ ...form, code: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="block text-sm font-medium text-ink mb-1">Tipo</span>
+          <select
+            className="input"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value as CouponType })}
+          >
+            {COUPON_TYPES.map((t) => (
+              <option key={t} value={t}>{TYPE_LABELS[t]}</option>
+            ))}
+          </select>
+        </label>
+        {form.type !== 'FREE_DELIVERY' && (
+          <label className="block">
+            <span className="block text-sm font-medium text-ink mb-1">Valor</span>
+            <input
+              className="input"
+              inputMode="decimal"
+              placeholder={form.type === 'PERCENT' ? '15' : '10,00'}
+              value={form.value}
+              onChange={(e) => setForm({ ...form, value: e.target.value })}
+            />
+          </label>
+        )}
+        <label className="block">
+          <span className="block text-sm font-medium text-ink mb-1">Pedido mínimo (R$)</span>
+          <input
+            className="input"
+            inputMode="decimal"
+            placeholder="40,00"
+            value={form.minOrder}
+            onChange={(e) => setForm({ ...form, minOrder: e.target.value })}
+          />
+        </label>
+        <div className="flex items-center gap-3">
+          <button disabled={loading} className="btn-primary">{loading ? 'Criando…' : 'Criar cupom'}</button>
+          {error && <span className="text-sm text-brand">{error}</span>}
+        </div>
+      </form>
+    </div>
+  );
+}

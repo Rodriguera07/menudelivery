@@ -1,0 +1,110 @@
+import { requireMerchantSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { formatBRL } from '@/lib/format';
+
+const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+function dayKey(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+export default async function MaisVendidosPage() {
+  const session = await requireMerchantSession();
+
+  const since = new Date();
+  since.setDate(since.getDate() - 6);
+  since.setHours(0, 0, 0, 0);
+
+  const [recentOrders, topProducts] = await Promise.all([
+    prisma.order.findMany({
+      where: { storeId: session.storeId, createdAt: { gte: since }, status: { not: 'CANCELLED' } },
+      select: { total: true, createdAt: true },
+    }),
+    prisma.product.findMany({
+      where: { storeId: session.storeId, sold: { gt: 0 } },
+      orderBy: { sold: 'desc' },
+      take: 8,
+    }),
+  ]);
+
+  const revenueByDay = new Map<string, number>();
+  for (const o of recentOrders) {
+    const key = dayKey(o.createdAt);
+    revenueByDay.set(key, (revenueByDay.get(key) ?? 0) + Number(o.total));
+  }
+
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(since);
+    d.setDate(since.getDate() + i);
+    return { key: dayKey(d), label: WEEKDAY_LABELS[d.getDay()], revenue: revenueByDay.get(dayKey(d)) ?? 0 };
+  });
+
+  const weekTotal = days.reduce((a, d) => a + d.revenue, 0);
+  const maxRevenue = Math.max(...days.map((d) => d.revenue), 1);
+  const maxSold = Math.max(...topProducts.map((p) => p.sold), 1);
+
+  const barWidth = 32;
+  const gap = 12;
+  const chartHeight = 120;
+  const chartWidth = days.length * barWidth + (days.length - 1) * gap;
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-surface rounded-2xl p-4">
+        <p className="text-xs text-muted">Faturamento — últimos 7 dias</p>
+        <p className="font-display text-2xl font-extrabold">{formatBRL(weekTotal)}</p>
+
+        <svg
+          viewBox={`0 0 ${chartWidth} ${chartHeight + 32}`}
+          width="100%"
+          height={chartHeight + 32}
+          className="mt-3"
+          role="img"
+          aria-label="Faturamento diário dos últimos 7 dias"
+        >
+          {days.map((d, i) => {
+            const barHeight = Math.max(2, (d.revenue / maxRevenue) * chartHeight);
+            const x = i * (barWidth + gap);
+            const y = chartHeight - barHeight;
+            return (
+              <g key={d.key}>
+                <title>{`${d.label}: ${formatBRL(d.revenue)}`}</title>
+                <rect x={x} y={y} width={barWidth} height={barHeight} rx={4} fill="#2E7BE0" />
+                <text x={x + barWidth / 2} y={chartHeight + 16} textAnchor="middle" fontSize="11" fill="#6E6E77">
+                  {d.label}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      <div className="bg-surface rounded-2xl p-4">
+        <h4 className="font-semibold text-sm mb-3">Mais vendidos</h4>
+        {topProducts.length === 0 ? (
+          <p className="text-muted text-sm">Nenhuma venda registrada ainda.</p>
+        ) : (
+          <div className="space-y-2">
+            {topProducts.map((p, i) => (
+              <div key={p.id} className="flex items-center gap-3">
+                <span className="text-xs font-bold text-muted w-4 shrink-0">{i + 1}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between text-sm">
+                    <span className="truncate">{p.name}</span>
+                    <span className="text-muted text-xs shrink-0 ml-2">{p.sold} vendidos</span>
+                  </div>
+                  <div className="h-1.5 bg-surface2 rounded-full mt-1 overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${(p.sold / maxSold) * 100}%`, backgroundColor: '#2E7BE0' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,136 @@
+'use client';
+
+import { useState } from 'react';
+import { formatBRL, parseBRL } from '@/lib/format';
+import { StoreIcon, TruckIcon, PixIcon, LinkIcon } from '@/components/icons';
+
+type StoreInfo = {
+  name: string;
+  whatsapp: string;
+  pixKey: string;
+  deliveryFee: number;
+  minOrder: number;
+  slug: string;
+  commissionPct: number;
+};
+
+export default function StoreSettingsForm({ store }: { store: StoreInfo }) {
+  const [form, setForm] = useState({
+    name: store.name,
+    whatsapp: store.whatsapp,
+    pixKey: store.pixKey,
+    deliveryFee: formatBRL(store.deliveryFee).replace('R$', '').trim(),
+    minOrder: formatBRL(store.minOrder).replace('R$', '').trim(),
+  });
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSaved(false);
+    setLoading(true);
+    const res = await fetch('/api/store/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.name,
+        whatsapp: form.whatsapp,
+        pixKey: form.pixKey,
+        deliveryFee: parseBRL(form.deliveryFee),
+        minOrder: parseBRL(form.minOrder),
+      }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) return setError(data.error ?? 'Não foi possível salvar.');
+    setSaved(true);
+  }
+
+  return (
+    <form onSubmit={save} className="space-y-4">
+      <div className="bg-surface rounded-2xl p-4 border-l-4 border-brand card-hover">
+        <div className="flex gap-3 mb-4">
+          <div className="w-9 h-9 rounded-lg bg-brand-soft text-brand grid place-items-center shrink-0">
+            <StoreIcon className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <b className="text-sm block">Identidade da loja</b>
+            <p className="text-xs text-muted mt-0.5">
+              Como sua loja aparece pro cliente. O botão de abrir/fechar a loja fica no topo do painel.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <label className="block">
+            <span className="block text-sm font-medium text-ink mb-1">Nome da loja</span>
+            <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </label>
+          <label className="block">
+            <span className="block text-sm font-medium text-ink mb-1">WhatsApp que recebe os pedidos</span>
+            <input className="input" inputMode="tel" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
+          </label>
+        </div>
+
+        <div className="flex items-center gap-1.5 mt-3 text-xs text-muted bg-surface2 rounded-lg px-3 py-2">
+          <LinkIcon className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Link para divulgar: <span className="font-mono text-ink">cardapiozap.app/{store.slug}</span></span>
+        </div>
+      </div>
+
+      <div className="bg-surface rounded-2xl p-4 border-l-4 border-orange card-hover">
+        <div className="flex gap-3 mb-4">
+          <div className="w-9 h-9 rounded-lg bg-orange-soft text-orange grid place-items-center shrink-0">
+            <TruckIcon className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <b className="text-sm block">Entrega</b>
+            <p className="text-xs text-muted mt-0.5">Taxa cobrada e valor mínimo por pedido.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className="block text-sm font-medium text-ink mb-1">Taxa de entrega (R$)</span>
+            <input className="input" inputMode="decimal" value={form.deliveryFee} onChange={(e) => setForm({ ...form, deliveryFee: e.target.value })} />
+          </label>
+          <label className="block">
+            <span className="block text-sm font-medium text-ink mb-1">Pedido mínimo (R$)</span>
+            <input className="input" inputMode="decimal" value={form.minOrder} onChange={(e) => setForm({ ...form, minOrder: e.target.value })} />
+          </label>
+        </div>
+      </div>
+
+      <div className="bg-surface rounded-2xl p-4 border-l-4 border-blue card-hover">
+        <div className="flex gap-3 mb-4">
+          <div className="w-9 h-9 rounded-lg bg-blue-soft text-blue grid place-items-center shrink-0">
+            <PixIcon className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <b className="text-sm block">Pagamento Pix</b>
+            <p className="text-xs text-muted mt-0.5">O dinheiro cai direto nessa chave, sem intermediário.</p>
+          </div>
+        </div>
+        <label className="block">
+          <span className="block text-sm font-medium text-ink mb-1">Chave Pix (CPF, CNPJ, e-mail, celular ou aleatória)</span>
+          <input
+            className="input"
+            value={form.pixKey}
+            onChange={(e) => setForm({ ...form, pixKey: e.target.value })}
+            placeholder="Sem chave, o cliente combina o Pix direto com você"
+          />
+        </label>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button disabled={loading} className="btn-primary">{loading ? 'Salvando…' : 'Salvar alterações'}</button>
+        {saved && <span className="text-sm text-green">Salvo!</span>}
+        {error && <span className="text-sm text-brand">{error}</span>}
+      </div>
+      <p className="text-xs text-muted">
+        Taxa da plataforma: o CardápioZap retém {store.commissionPct}% de cada pedido pago.
+      </p>
+    </form>
+  );
+}

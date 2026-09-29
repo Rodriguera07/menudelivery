@@ -1,0 +1,53 @@
+'use client';
+
+import { useState } from 'react';
+import { ShieldIcon } from '@/components/icons';
+
+export default function TwoFactorToggle({ enabled: initialEnabled }: { enabled: boolean }) {
+  const [enabled, setEnabled] = useState(initialEnabled);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function toggle() {
+    setError('');
+    setLoading(true);
+    const next = !enabled;
+    const res = await fetch('/api/store/merchant/two-factor', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: next }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) return setError(data.error ?? 'Não foi possível alterar.');
+    setEnabled(next);
+  }
+
+  return (
+    <div className="bg-surface rounded-2xl p-4 border-l-4 border-brand card-hover">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex gap-3">
+          <div className="w-9 h-9 rounded-lg bg-brand-soft text-brand grid place-items-center shrink-0">
+            <ShieldIcon className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <b className="text-sm block">Verificação em duas etapas</b>
+            <p className="text-xs text-muted mt-0.5">
+              Ao entrar no painel, você confirma com um código de 6 dígitos enviado pro
+              WhatsApp da loja.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={loading}
+          className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full disabled:opacity-60 ${enabled ? 'bg-green-soft text-green' : 'bg-surface2 text-muted'}`}
+        >
+          {loading ? '…' : enabled ? 'Ativado' : 'Desativado'}
+        </button>
+      </div>
+      {error && <p className="text-sm text-brand mt-2">{error}</p>}
+    </div>
+  );
+}
