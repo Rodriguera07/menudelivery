@@ -23,12 +23,12 @@ export function verifyPassword(password: string, hash: string) {
 }
 
 function sign(payload: object, expiresIn: number) {
-  return jwt.sign(payload, JWT_SECRET as string, { expiresIn });
+  return jwt.sign(payload, JWT_SECRET as string, { expiresIn, algorithm: 'HS256' });
 }
 
 function verify<T>(token: string): T | null {
   try {
-    return jwt.verify(token, JWT_SECRET as string) as T;
+    return jwt.verify(token, JWT_SECRET as string, { algorithms: ['HS256'] }) as T;
   } catch {
     return null;
   }
