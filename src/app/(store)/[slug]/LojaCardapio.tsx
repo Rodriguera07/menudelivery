@@ -204,7 +204,9 @@ export default function LojaCardapio({
       </header>
 
       {/* ---------- Capa ---------- */}
-      <div className={`relative lj-cover ${loja.capaUrl ? 'h-[180px] sm:h-[230px] lg:h-[300px]' : 'h-[132px] lg:h-[180px]'}`}>
+      <div
+        className={`relative ${loja.capaUrl ? 'bg-[#F1EEEB]' : 'lj-cover'} ${loja.capaUrl ? 'h-[180px] sm:h-[230px] lg:h-[300px]' : 'h-[132px] lg:h-[180px]'}`}
+      >
         {loja.capaUrl && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}

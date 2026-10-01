@@ -31,11 +31,15 @@ export default function StorePreviewCard({
       <div className="rounded-2xl overflow-hidden bg-white shadow-[0_10px_30px_-12px_rgba(29,27,26,.25)]">
         <div
           className={`relative ${bannerUrl ? 'h-[110px]' : 'h-[72px]'}`}
-          style={{
-            backgroundColor: '#C8101E',
-            backgroundImage: 'radial-gradient(rgba(255,255,255,.16) 1.2px, transparent 1.3px)',
-            backgroundSize: '14px 14px',
-          }}
+          style={
+            bannerUrl
+              ? { backgroundColor: '#F1EEEB' }
+              : {
+                  backgroundColor: '#C8101E',
+                  backgroundImage: 'radial-gradient(rgba(255,255,255,.16) 1.2px, transparent 1.3px)',
+                  backgroundSize: '14px 14px',
+                }
+          }
         >
           {bannerUrl && (
             // eslint-disable-next-line @next/next/no-img-element

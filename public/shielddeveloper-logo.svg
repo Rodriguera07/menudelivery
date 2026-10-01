@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 200" width="620" height="200">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B3B6F"/>
+      <stop offset="55%" stop-color="#0E6BA8"/>
+      <stop offset="100%" stop-color="#22D3D3"/>
+    </linearGradient>
+    <linearGradient id="shieldEdge" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3FE3E0"/>
+      <stop offset="100%" stop-color="#0B3B6F"/>
+    </linearGradient>
+    <linearGradient id="devGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0E6BA8"/>
+      <stop offset="100%" stop-color="#22D3D3"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon group, translated/scaled from the 200x200 icon -->
+  <g transform="translate(10,10) scale(0.9)">
+    <path d="M100 12
+             L172 40
+             V96
+             C172 140 142 172 100 190
+             C58 172 28 140 28 96
+             V40
+             Z"
+          fill="url(#shieldGrad)"
+          stroke="url(#shieldEdge)"
+          stroke-width="3"/>
+    <path d="M100 24
+             L160 47
+             V96
+             C160 133 136 160 100 176
+             C64 160 40 133 40 96
+             V47
+             Z"
+          fill="none"
+          stroke="#ffffff"
+          stroke-opacity="0.12"
+          stroke-width="2"/>
+    <g fill="none" stroke="#F4FBFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M84 74 L60 100 L84 126"/>
+      <path d="M116 74 L140 100 L116 126"/>
+    </g>
+    <line x1="106" y1="68" x2="94" y2="132" stroke="#F4FBFF" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="222" y="122" font-family="Poppins, 'Segoe UI', Arial, sans-serif" font-weight="700" font-size="64" fill="#0B3B6F" letter-spacing="0.5">Shield<tspan fill="url(#devGrad)"> Dev</tspan></text>
+
+  <!-- Tagline -->
+  <text x="225" y="150" font-family="Poppins, 'Segoe UI', Arial, sans-serif" font-weight="500" font-size="18" fill="#5B7B93" letter-spacing="2">WEB&#160;DEVELOPER&#160;&#160;&#183;&#160;&#160;LANDING&#160;PAGES</text>
+</svg>
