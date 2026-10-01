@@ -1,6 +1,6 @@
-// Marca do CardápioZap: balão de conversa (o "zap") com linhas de cardápio dentro —
-// substitui o badge de texto "CZ" usado antes. `inverse` troca as cores para uso em
-// cima de um fundo já colorido com o gradiente da marca (evita gradiente sobre gradiente).
+// Marca do Menudelivery: sacola de entrega com linhas de cardápio dentro.
+// `inverse` troca as cores para uso em cima de um fundo já colorido com o gradiente da marca
+// (evita gradiente sobre gradiente).
 
 export function LogoMark({ size = 36, inverse = false }: { size?: number; inverse?: boolean }) {
   return (
@@ -14,11 +14,18 @@ export function LogoMark({ size = 36, inverse = false }: { size?: number; invers
     >
       <svg viewBox="0 0 24 24" fill="none" style={{ width: size * 0.56, height: size * 0.56 }}>
         <path
-          d="M5 5.8A2.8 2.8 0 017.8 3h8.4A2.8 2.8 0 0119 5.8v6.4a2.8 2.8 0 01-2.8 2.8H10l-3.4 2.9a.55.55 0 01-.9-.42V15h-.9A2.8 2.8 0 015 12.2V5.8z"
+          d="M4.8 9.6h14.4l-.9 9a2.2 2.2 0 01-2.19 1.98H7.89A2.2 2.2 0 015.7 18.6l-.9-9z"
           fill={inverse ? '#EA1D2C' : '#FFFFFF'}
         />
         <path
-          d="M8.3 7.6h7.4M8.3 10.1h4.8"
+          d="M8.6 9.6V7.3a3.4 3.4 0 016.8 0v2.3"
+          stroke={inverse ? '#FFFFFF' : '#EA1D2C'}
+          strokeWidth="1.3"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <path
+          d="M8.2 13.2h7.6M8.2 15.7h4.8"
           stroke={inverse ? '#FFFFFF' : '#EA1D2C'}
           strokeWidth="1.3"
           strokeLinecap="round"
@@ -44,7 +51,7 @@ export function Logo({
       <LogoMark size={size} inverse={inverse} />
       {withText && (
         <span className={`font-display font-extrabold ${textClassName ?? (inverse ? 'text-white' : 'text-ink')}`}>
-          CardápioZap
+          Menudelivery
         </span>
       )}
     </span>

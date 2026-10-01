@@ -5,7 +5,7 @@ import { unitPrice } from '@/lib/coupon';
 import LojaCardapio, { type Loja, type Produto } from './LojaCardapio';
 import { feeRange } from '@/lib/delivery';
 
-// Cardápio público do cliente — aberto a partir do link do WhatsApp: cardapiozap.app/[slug]
+// Cardápio público do cliente — aberto a partir do link do WhatsApp: menudelivery.app/[slug]
 export default async function StorePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const store = await prisma.store.findUnique({

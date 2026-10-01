@@ -74,7 +74,7 @@ const Svg = ({ d, size = 18, sw = 2, className }: { d: string[]; size?: number; 
 );
 const I = {
   whats: ['M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.5A8.4 8.4 0 1 1 21 11.5Z'],
-  logo: ['M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.5A8.4 8.4 0 1 1 21 11.5Z', 'M8.5 10h7M8.5 13.5h4.5'],
+  logo: ['M5 10h14l-.9 9.4a2.3 2.3 0 0 1-2.3 2.1H8.2a2.3 2.3 0 0 1-2.3-2.1L5 10Z', 'M8.8 10V7.6a3.2 3.2 0 0 1 6.4 0V10'],
   escudo: ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z', 'm9 12 2 2 4-4'],
   pix: ['M12 2 2 12l10 10 10-10Z', 'm8 12 4-4 4 4-4 4Z'],
   painel: ['M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z', 'M3 10h18M9 4v16'],
@@ -123,7 +123,7 @@ function PainelMarketing() {
         <div className="w-[38px] h-[38px] rounded-[11px] bg-white text-[#D0101F] grid place-items-center">
           <Svg d={I.logo} size={20} sw={2.2} />
         </div>
-        <span className="lg-display text-xl font-extrabold">CardápioZap</span>
+        <span className="lg-display text-xl font-extrabold">Menudelivery</span>
       </div>
 
       <div className="flex flex-col gap-3.5">
@@ -291,7 +291,7 @@ function LoginLojista() {
   const [twoFactorWarning, setTwoFactorWarning] = useState(false);
   const [code, setCode] = useState('');
 
-  const dominio = typeof window !== 'undefined' ? window.location.host : 'cardapiozap.app';
+  const dominio = typeof window !== 'undefined' ? window.location.host : 'menudelivery.app';
 
   const emailOk = EMAIL_RE.test(email);
   const slug = slugify(nomeLoja) || 'sua-loja';
@@ -427,7 +427,7 @@ function LoginLojista() {
             <div className="w-8 h-8 rounded-[9px] bg-[#D0101F] text-white grid place-items-center">
               <Svg d={I.logo} size={17} sw={2.2} />
             </div>
-            <span className="lg-display text-lg font-extrabold text-[#1D1B1A]">CardápioZap</span>
+            <span className="lg-display text-lg font-extrabold text-[#1D1B1A]">Menudelivery</span>
           </div>
         </div>
 

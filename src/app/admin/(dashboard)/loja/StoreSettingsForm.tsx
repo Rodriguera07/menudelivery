@@ -338,7 +338,7 @@ export default function StoreSettingsForm({ store, children }: { store: StoreInf
             <p className="text-xs font-semibold text-[#6B6662] flex items-center gap-1.5">
               <Icon d={I.link} size={13} /> Link da sua loja
             </p>
-            <p className="pp-mono text-sm font-semibold mt-1 break-all">cardapiozap.app/{store.slug}</p>
+            <p className="pp-mono text-sm font-semibold mt-1 break-all">menudelivery.app/{store.slug}</p>
             <div className="grid grid-cols-2 gap-2 mt-3">
               <button
                 type="button"

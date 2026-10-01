@@ -177,7 +177,7 @@ export default function EntrarForm({
 
         <div className="flex items-center justify-center gap-1.5 mt-5 opacity-70">
           <LogoMark size={18} />
-          <span className="text-xs font-semibold text-[#5E5A57]">Uma loja no CardápioZap</span>
+          <span className="text-xs font-semibold text-[#5E5A57]">Uma loja no Menudelivery</span>
         </div>
       </div>
     </LjRoot>
