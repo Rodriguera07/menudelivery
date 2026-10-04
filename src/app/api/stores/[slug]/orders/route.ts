@@ -4,7 +4,7 @@ import { getCustomerSession } from '@/lib/auth';
 import { checkoutSchema } from '@/lib/validation';
 import { computeDiscount, unitPrice } from '@/lib/coupon';
 import { buildOrderMessage } from '@/lib/whatsapp';
-import { sendWhatsAppText } from '@/lib/whatsapp-cloud';
+import { sendText } from '@/lib/whatsapp-evolution';
 import { resolveDeliveryFee } from '@/lib/delivery';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     changeFor: paymentMethod === 'CASH' ? changeFor ?? null : null,
     notes,
   });
-  const sent = await sendWhatsAppText(store.whatsapp, message);
+  const sent = await sendText(store.id, store.whatsapp, message);
   if (sent.ok) {
     await prisma.order.update({ where: { id: order.id }, data: { whatsappSentAt: new Date() } });
   }

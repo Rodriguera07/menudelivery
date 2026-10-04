@@ -4,7 +4,7 @@ import { verifyPassword, createMerchantSession, createPending2FASession } from '
 import { merchantLoginSchema } from '@/lib/validation';
 import { isLocked, registerFailedAttempt } from '@/lib/rate-limit';
 import { generateTwoFactorCode, buildTwoFactorMessage, TWO_FACTOR_CODE_MINUTES } from '@/lib/two-factor';
-import { sendWhatsAppText } from '@/lib/whatsapp-cloud';
+import { sendText } from '@/lib/whatsapp-evolution';
 
 export async function POST(req: NextRequest) {
   const parsed = merchantLoginSchema.safeParse(await req.json());
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     where: { id: merchant.id },
     data: { twoFactorCode: code, twoFactorCodeExpiresAt: new Date(Date.now() + TWO_FACTOR_CODE_MINUTES * 60_000) },
   });
-  const sent = await sendWhatsAppText(merchant.store.whatsapp, buildTwoFactorMessage(code));
+  const sent = await sendText(merchant.storeId, merchant.store.whatsapp, buildTwoFactorMessage(code));
   await createPending2FASession({ merchantId: merchant.id });
 
   return NextResponse.json({

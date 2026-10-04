@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getMerchantSession } from '@/lib/auth';
 import { orderStatusUpdateSchema } from '@/lib/validation';
 import { isValidTransition } from '@/lib/order-status';
+import { buildStatusMessage } from '@/lib/whatsapp';
+import { sendText } from '@/lib/whatsapp-evolution';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getMerchantSession();
@@ -14,7 +16,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const order = await prisma.order.findUnique({ where: { id }, select: { storeId: true, status: true } });
+  const order = await prisma.order.findUnique({
+    where: { id },
+    select: { storeId: true, status: true, number: true, customer: { select: { phone: true } }, store: { select: { slug: true, name: true, waConnected: true } } },
+  });
   if (!order || order.storeId !== session.storeId) {
     return NextResponse.json({ error: 'Pedido não encontrado.' }, { status: 404 });
   }
@@ -23,5 +28,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const updated = await prisma.order.update({ where: { id }, data: { status: parsed.data.status } });
+
+  if (order.store.waConnected) {
+    const trackingUrl = `${req.nextUrl.origin}/${order.store.slug}/pedido/${id}`;
+    const message = buildStatusMessage(order.store.name, order.number, updated.status, trackingUrl);
+    await sendText(order.storeId, order.customer.phone, message);
+  }
+
   return NextResponse.json({ order: { id: updated.id, status: updated.status } });
 }

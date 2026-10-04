@@ -18,7 +18,9 @@ model Store {
   category    String?
   logoUrl     String?
   bannerUrl   String? // imagem de capa no topo do cardápio
-  whatsapp    String // número que recebe os pedidos (WhatsApp Cloud API)
+  whatsapp    String // número que recebe os pedidos (via WhatsApp conectado, Evolution API)
+  waConnected   Boolean   @default(false) // true quando o número da loja está conectado via QR code (Evolution API)
+  waConnectedAt DateTime? // quando a conexão foi concluída pela última vez
   pixKey      String? // chave Pix da loja (CPF/CNPJ/e-mail/celular/aleatória) — recebe direto
   deliveryFee Decimal  @default(0) @db.Decimal(10, 2) // taxa única (quando deliveryMode = FIXED)
   deliveryMode DeliveryMode @default(FIXED)

@@ -4,6 +4,7 @@ import { PageHeader } from '../ui';
 import StoreSettingsForm from './StoreSettingsForm';
 import StoreHoursEditor from './StoreHoursEditor';
 import TwoFactorToggle from './TwoFactorToggle';
+import WhatsAppConnect from './WhatsAppConnect';
 
 const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
 
@@ -46,6 +47,7 @@ export default async function LojaPage() {
         }}
       >
         <StoreHoursEditor initialHours={hours} />
+        <WhatsAppConnect connected={store.waConnected} />
         <TwoFactorToggle enabled={store.merchant?.twoFactor ?? false} />
       </StoreSettingsForm>
     </div>

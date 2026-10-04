@@ -57,6 +57,7 @@ const SECOES = [
   { id: 'entrega', label: 'Entrega' },
   { id: 'pagamento', label: 'Pagamento' },
   { id: 'horarios', label: 'Horários' },
+  { id: 'whatsapp', label: 'WhatsApp' },
   { id: 'seguranca', label: 'Segurança' },
 ];
 

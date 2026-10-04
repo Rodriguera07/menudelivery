@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { DevFooter } from '@/components/DevFooter';
+import { CrispChat } from '@/components/CrispChat';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <DevFooter />
+        <CrispChat />
         <Analytics />
       </body>
     </html>

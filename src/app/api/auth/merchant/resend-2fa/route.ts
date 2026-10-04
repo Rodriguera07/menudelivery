@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getPending2FASession } from '@/lib/auth';
 import { generateTwoFactorCode, buildTwoFactorMessage, TWO_FACTOR_CODE_MINUTES } from '@/lib/two-factor';
-import { sendWhatsAppText } from '@/lib/whatsapp-cloud';
+import { sendText } from '@/lib/whatsapp-evolution';
 
 export async function POST() {
   const pending = await getPending2FASession();
@@ -16,7 +16,7 @@ export async function POST() {
     where: { id: merchant.id },
     data: { twoFactorCode: code, twoFactorCodeExpiresAt: new Date(Date.now() + TWO_FACTOR_CODE_MINUTES * 60_000) },
   });
-  const sent = await sendWhatsAppText(merchant.store.whatsapp, buildTwoFactorMessage(code));
+  const sent = await sendText(merchant.storeId, merchant.store.whatsapp, buildTwoFactorMessage(code));
 
   return NextResponse.json({ whatsappSent: sent.ok });
 }

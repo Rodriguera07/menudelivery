@@ -1,4 +1,6 @@
 import { formatBRL } from '@/lib/format';
+import { ORDER_STATUS_LABELS } from '@/lib/order-status';
+import type { OrderStatus } from '@prisma/client';
 
 const PAY_LABELS: Record<string, string> = {
   PIX: 'Pix',
@@ -41,6 +43,16 @@ export function buildOrderMessage(o: WhatsAppOrder) {
   if (o.paymentMethod === 'PIX') pay += ' — aguardando comprovante';
   lines.push(pay);
   if (o.notes) lines.push(`*Obs.:* ${o.notes}`);
+  return lines.join('\n');
+}
+
+export function buildStatusMessage(storeName: string, orderNumber: number, status: OrderStatus, trackingUrl: string) {
+  const lines = [
+    `*${storeName}*`,
+    `Seu pedido #${orderNumber} agora está: *${ORDER_STATUS_LABELS[status]}*`,
+    '',
+    `Acompanhe: ${trackingUrl}`,
+  ];
   return lines.join('\n');
 }
 

@@ -14,11 +14,14 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  if (parsed.data.enabled && (!process.env.WHATSAPP_CLOUD_TOKEN || !process.env.WHATSAPP_PHONE_NUMBER_ID)) {
-    return NextResponse.json(
-      { error: 'Configure a integração do WhatsApp (envio automático) antes de ativar o 2FA — sem ela o código não chega.' },
-      { status: 400 },
-    );
+  if (parsed.data.enabled) {
+    const store = await prisma.store.findUnique({ where: { id: session.storeId }, select: { waConnected: true } });
+    if (!store?.waConnected) {
+      return NextResponse.json(
+        { error: 'Conecte o WhatsApp da loja em Loja > WhatsApp antes de ativar o 2FA — sem ele o código não chega.' },
+        { status: 400 },
+      );
+    }
   }
 
   await prisma.merchant.update({ where: { id: session.merchantId }, data: { twoFactor: parsed.data.enabled } });
