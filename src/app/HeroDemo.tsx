@@ -73,7 +73,16 @@ export default function HeroDemo() {
   const total = itens.reduce((s, i) => s + i.preco * qtd[i.id], 0);
   const count = itens.reduce((s, i) => s + qtd[i.id], 0);
 
+  // Índice sempre fresco pra uso dentro do intervalo abaixo (evita closure presa no
+  // valor da primeira renderização).
+  const storeIdxRef = useRef(storeIdx);
+  storeIdxRef.current = storeIdx;
+  // Quando foi a última interação manual — o auto-avanço só dispara depois de um
+  // tempo sem toques, pra não brigar com quem está usando o demo de verdade.
+  const lastInteractionRef = useRef(Date.now() - 10_000);
+
   const add = (id: string) => {
+    lastInteractionRef.current = Date.now();
     setQtd((q) => ({ ...q, [id]: (q[id] ?? 0) + 1 }));
     setEnviado(false);
     setPulse(id);
@@ -83,6 +92,7 @@ export default function HeroDemo() {
 
   const enviar = () => {
     if (!count) return;
+    lastInteractionRef.current = Date.now();
     setEnviado(true);
     setNumero((n) => n + 1);
   };
@@ -93,7 +103,7 @@ export default function HeroDemo() {
   };
 
   const trocarLoja = () => {
-    const next = (storeIdx + 1) % LOJAS.length;
+    const next = (storeIdxRef.current + 1) % LOJAS.length;
     setStoreIdx(next);
     setQtd(LOJAS[next].padrao);
     setEnviado(false);
@@ -101,6 +111,18 @@ export default function HeroDemo() {
   };
 
   useEffect(() => () => clearTimeout(timer.current), []);
+
+  // Troca de loja sozinha a cada 5s, só quando ninguém tocou no demo nos últimos
+  // 4s — assim o hero já "vive" pra quem não interage, mas não briga com quem
+  // está no meio de montar um pedido manualmente.
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = setInterval(() => {
+      if (Date.now() - lastInteractionRef.current > 4000) trocarLoja();
+    }, 5000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="relative mx-auto w-full max-w-[420px] lg:max-w-none">

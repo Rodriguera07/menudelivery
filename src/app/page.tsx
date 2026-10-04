@@ -87,7 +87,7 @@ export default function Home() {
       {/* ---------- Topo ---------- */}
       <header className="sticky top-0 z-20 bg-surface/85 backdrop-blur border-b border-line">
         <div className="max-w-6xl mx-auto px-5 sm:px-6 h-16 flex items-center gap-6">
-          <Link href="/" aria-label="Menudelivery — início"><Logo /></Link>
+          <Link href="/" aria-label="Menu Delivery — início"><Logo /></Link>
           <nav aria-label="Seções" className="hidden md:flex items-center gap-1 text-sm font-medium text-muted">
             <a href="#como-funciona" className="px-3 py-2 rounded-lg hover:text-ink hover:bg-surface2 transition-colors">Como funciona</a>
             <a href="#recursos" className="px-3 py-2 rounded-lg hover:text-ink hover:bg-surface2 transition-colors">Recursos</a>
@@ -228,7 +228,7 @@ export default function Home() {
               <tr className="text-left">
                 <th scope="col" className="p-4 w-[22%] font-semibold text-muted" />
                 <th scope="col" className="p-4 font-display font-bold text-ink bg-brand-soft/60">
-                  <span className="inline-flex items-center gap-2"><Logo size={22} withText={false} /> Com Menudelivery</span>
+                  <span className="inline-flex items-center gap-2"><Logo size={22} withText={false} /> Com Menu Delivery</span>
                 </th>
                 <th scope="col" className="p-4 font-semibold text-muted">Só pelo WhatsApp</th>
               </tr>

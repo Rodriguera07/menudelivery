@@ -1,18 +1,25 @@
-// Marca do Menudelivery: sacola de entrega com linhas de cardápio dentro.
+// Marca do Menu Delivery: sacola de entrega com linhas de cardápio dentro.
 // `inverse` troca as cores para uso em cima de um fundo já colorido com o gradiente da marca
 // (evita gradiente sobre gradiente).
 
 export function LogoMark({ size = 36, inverse = false }: { size?: number; inverse?: boolean }) {
   return (
     <div
-      className="rounded-xl grid place-items-center shrink-0"
+      className="relative rounded-xl grid place-items-center shrink-0 overflow-hidden animate-logo-float"
       style={{
         width: size,
         height: size,
         background: inverse ? '#FFFFFF' : 'linear-gradient(150deg, #EA1D2C 0%, #FF8A00 100%)',
       }}
     >
-      <svg viewBox="0 0 24 24" fill="none" style={{ width: size * 0.56, height: size * 0.56 }}>
+      {!inverse && (
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 animate-logo-sheen"
+          style={{ background: 'linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%)' }}
+        />
+      )}
+      <svg viewBox="0 0 24 24" fill="none" className="relative" style={{ width: size * 0.56, height: size * 0.56 }}>
         <path
           d="M4.8 9.6h14.4l-.9 9a2.2 2.2 0 01-2.19 1.98H7.89A2.2 2.2 0 015.7 18.6l-.9-9z"
           fill={inverse ? '#EA1D2C' : '#FFFFFF'}
@@ -51,7 +58,7 @@ export function Logo({
       <LogoMark size={size} inverse={inverse} />
       {withText && (
         <span className={`font-display font-extrabold ${textClassName ?? (inverse ? 'text-white' : 'text-ink')}`}>
-          Menudelivery
+          Menu Delivery
         </span>
       )}
     </span>

@@ -358,7 +358,7 @@ export default function LojaCardapio({
 
           <footer className="pt-2 flex items-center justify-center gap-2 text-[13px] text-[#6B6662]">
             <span className="w-[18px] h-[18px] rounded-[5px] bg-[#D0101F]" />
-            Loja no Menudelivery
+            Loja no Menu Delivery
           </footer>
         </div>
 

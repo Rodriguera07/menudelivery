@@ -123,7 +123,7 @@ function PainelMarketing() {
         <div className="w-[38px] h-[38px] rounded-[11px] bg-white text-[#D0101F] grid place-items-center">
           <Svg d={I.logo} size={20} sw={2.2} />
         </div>
-        <span className="lg-display text-xl font-extrabold">Menudelivery</span>
+        <span className="lg-display text-xl font-extrabold">Menu Delivery</span>
       </div>
 
       <div className="flex flex-col gap-3.5">
@@ -427,7 +427,7 @@ function LoginLojista() {
             <div className="w-8 h-8 rounded-[9px] bg-[#D0101F] text-white grid place-items-center">
               <Svg d={I.logo} size={17} sw={2.2} />
             </div>
-            <span className="lg-display text-lg font-extrabold text-[#1D1B1A]">Menudelivery</span>
+            <span className="lg-display text-lg font-extrabold text-[#1D1B1A]">Menu Delivery</span>
           </div>
         </div>
 

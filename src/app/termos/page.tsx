@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 
 export const metadata = {
-  title: 'Termos de Uso — Menudelivery',
-  description: 'Regras de uso da plataforma Menudelivery para lojistas e clientes.',
+  title: 'Termos de Uso — Menu Delivery',
+  description: 'Regras de uso da plataforma Menu Delivery para lojistas e clientes.',
 };
 
 const ATUALIZADO_EM = '1 de outubro de 2026';
@@ -13,7 +13,7 @@ export default function TermosPage() {
     <main className="min-h-screen bg-brand-wash">
       <header className="border-b border-line bg-surface/85 backdrop-blur">
         <div className="max-w-3xl mx-auto px-5 sm:px-6 h-16 flex items-center">
-          <Link href="/" aria-label="Menudelivery — início"><Logo /></Link>
+          <Link href="/" aria-label="Menu Delivery — início"><Logo /></Link>
         </div>
       </header>
 
@@ -25,14 +25,14 @@ export default function TermosPage() {
         <div className="mt-10 space-y-8 text-ink leading-relaxed [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-2 [&_p]:text-muted [&_p]:mt-2 [&_li]:text-muted [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1">
           <section>
             <p className="text-muted">
-              Ao criar uma conta ou usar o Menudelivery — seja como lojista ou como cliente — você concorda
+              Ao criar uma conta ou usar o Menu Delivery — seja como lojista ou como cliente — você concorda
               com estes termos. Leia com atenção antes de continuar.
             </p>
           </section>
 
           <section>
-            <h2>1. O que é o Menudelivery</h2>
-            <p>O Menudelivery é uma plataforma que permite a lojistas criar um cardápio online e receber pedidos, com o pedido sendo enviado formatado para o WhatsApp da loja e o pagamento via Pix feito diretamente na chave cadastrada pelo próprio lojista.</p>
+            <h2>1. O que é o Menu Delivery</h2>
+            <p>O Menu Delivery é uma plataforma que permite a lojistas criar um cardápio online e receber pedidos, com o pedido sendo enviado formatado para o WhatsApp da loja e o pagamento via Pix feito diretamente na chave cadastrada pelo próprio lojista.</p>
           </section>
 
           <section>
@@ -46,12 +46,12 @@ export default function TermosPage() {
 
           <section>
             <h2>3. Pagamentos</h2>
-            <p>O Menudelivery não processa nem retém valores de pagamento. O Pix é gerado com a chave cadastrada pelo próprio lojista, e o valor vai direto da conta do cliente para a conta da loja — a plataforma não é parte nessa transação financeira e não se responsabiliza por erros na chave Pix cadastrada pelo lojista.</p>
+            <p>O Menu Delivery não processa nem retém valores de pagamento. O Pix é gerado com a chave cadastrada pelo próprio lojista, e o valor vai direto da conta do cliente para a conta da loja — a plataforma não é parte nessa transação financeira e não se responsabiliza por erros na chave Pix cadastrada pelo lojista.</p>
           </section>
 
           <section>
             <h2>4. Pedidos e relação entre cliente e loja</h2>
-            <p>A compra é feita diretamente entre cliente e loja. O Menudelivery é um intermediário tecnológico — questões sobre qualidade do produto, prazo de entrega, trocas ou cancelamentos devem ser resolvidas diretamente com a loja através do WhatsApp informado.</p>
+            <p>A compra é feita diretamente entre cliente e loja. O Menu Delivery é um intermediário tecnológico — questões sobre qualidade do produto, prazo de entrega, trocas ou cancelamentos devem ser resolvidas diretamente com a loja através do WhatsApp informado.</p>
           </section>
 
           <section>

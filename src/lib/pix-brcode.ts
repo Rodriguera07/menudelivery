@@ -24,7 +24,7 @@ function sanitize(text: string, maxLength: number) {
     .normalize('NFD')
     .replace(/[^A-Za-z0-9 ]/g, '')
     .trim();
-  return (stripped || 'MENUDELIVERY').slice(0, maxLength);
+  return (stripped || 'MENU DELIVERY').slice(0, maxLength);
 }
 
 export function buildPixPayload(opts: {

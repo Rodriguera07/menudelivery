@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 
 export const metadata = {
-  title: 'Política de Privacidade — Menudelivery',
-  description: 'Como o Menudelivery coleta, usa e protege os dados de lojistas e clientes.',
+  title: 'Política de Privacidade — Menu Delivery',
+  description: 'Como o Menu Delivery coleta, usa e protege os dados de lojistas e clientes.',
 };
 
 const ATUALIZADO_EM = '1 de outubro de 2026';
@@ -13,7 +13,7 @@ export default function PrivacidadePage() {
     <main className="min-h-screen bg-brand-wash">
       <header className="border-b border-line bg-surface/85 backdrop-blur">
         <div className="max-w-3xl mx-auto px-5 sm:px-6 h-16 flex items-center">
-          <Link href="/" aria-label="Menudelivery — início"><Logo /></Link>
+          <Link href="/" aria-label="Menu Delivery — início"><Logo /></Link>
         </div>
       </header>
 
@@ -25,7 +25,7 @@ export default function PrivacidadePage() {
         <div className="mt-10 space-y-8 text-ink leading-relaxed [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-2 [&_p]:text-muted [&_p]:mt-2 [&_li]:text-muted [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1">
           <section>
             <p className="text-muted">
-              Esta política explica quais dados o Menudelivery coleta, para que servem e quais direitos
+              Esta política explica quais dados o Menu Delivery coleta, para que servem e quais direitos
               você tem sobre eles, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº
               13.709/2018). Ela se aplica tanto a lojistas quanto a clientes que usam a plataforma.
             </p>

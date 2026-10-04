@@ -5,7 +5,7 @@ import { CrispChat } from '@/components/CrispChat';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Menudelivery',
+  title: 'Menu Delivery',
   description: 'Cardápio online multi-loja com pedido direto pelo WhatsApp',
 };
 

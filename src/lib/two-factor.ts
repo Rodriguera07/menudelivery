@@ -7,5 +7,5 @@ export function generateTwoFactorCode() {
 }
 
 export function buildTwoFactorMessage(code: string) {
-  return `*Menudelivery*\nSeu código de verificação é *${code}*.\nVale por ${TWO_FACTOR_CODE_MINUTES} minutos. Não compartilhe com ninguém.`;
+  return `*Menu Delivery*\nSeu código de verificação é *${code}*.\nVale por ${TWO_FACTOR_CODE_MINUTES} minutos. Não compartilhe com ninguém.`;
 }
