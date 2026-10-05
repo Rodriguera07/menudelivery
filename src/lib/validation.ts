@@ -24,6 +24,15 @@ export const merchantLoginSchema = z.object({
   password: z.string().min(1, 'Informe a senha'),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email('E-mail inválido'),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(1, 'Link inválido'),
+  password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres'),
+});
+
 export const customerSignupSchema = z.object({
   name: z.string().trim().min(2, 'Informe seu nome'),
   phone: z.string().trim().min(8, 'Informe um WhatsApp válido').transform(onlyDigits),

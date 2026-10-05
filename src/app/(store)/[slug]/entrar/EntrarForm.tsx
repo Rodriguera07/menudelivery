@@ -162,6 +162,9 @@ export default function EntrarForm({
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                   />
                 </Field>
+                <Link href={`/${slug}/esqueci-senha`} className="block text-right text-sm font-semibold text-[#C4101D] hover:underline -mt-1">
+                  Esqueci minha senha
+                </Link>
                 {error && <p role="alert" className="text-sm font-semibold text-[#B42318]">{error}</p>}
                 <button disabled={loading} className={`${ljBtnPrimary} w-full`}>
                   {loading ? 'Entrando…' : 'Entrar'}

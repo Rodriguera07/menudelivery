@@ -514,7 +514,16 @@ function LoginLojista() {
                             {emailOk && <Svg d={I.check} sw={2.4} className="text-[#177245]" />}
                           </div>
                         </Campo>
-                        <Campo id="lg-pass" label="Senha" erro={tentou && !senha && 'Digite sua senha.'}>
+                        <Campo
+                          id="lg-pass"
+                          label="Senha"
+                          erro={tentou && !senha && 'Digite sua senha.'}
+                          extra={
+                            <a href="/admin/esqueci-senha" className="text-sm font-semibold text-[#C4101D] hover:underline">
+                              Esqueci minha senha
+                            </a>
+                          }
+                        >
                           <CampoSenha id="lg-pass" value={senha} onChange={setSenha} auto="current-password" placeholder="Sua senha" invalido={tentou && !senha} />
                         </Campo>
                         <BotaoPrincipal type="submit" carregando={carregando}>

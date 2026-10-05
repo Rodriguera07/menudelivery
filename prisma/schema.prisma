@@ -85,6 +85,8 @@ model Merchant {
   twoFactorCode          String?
   twoFactorCodeExpiresAt DateTime?
   createdAt    DateTime @default(now())
+
+  passwordResetTokens PasswordResetToken[]
 }
 
 // Cliente final (compra em uma ou mais lojas)
@@ -102,6 +104,25 @@ model Customer {
   addresses Address[]
   orders    Order[]
   favorites Favorite[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+// Token de "esqueci minha senha" — guardamos o hash do token, nunca o valor cru
+// (só o e-mail recebe o valor cru, se o banco vazar não dá pra redefinir a senha de ninguém).
+// Vale pra Merchant OU Customer, nunca os dois ao mesmo tempo.
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  merchant   Merchant? @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchantId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String?
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([merchantId])
+  @@index([customerId])
 }
 
 model Address {

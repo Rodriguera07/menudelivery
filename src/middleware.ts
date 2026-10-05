@@ -10,8 +10,10 @@ export const runtime = 'nodejs';
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) throw new Error('JWT_SECRET não configurado no .env');
 
+const PUBLIC_PATHS = ['/admin/login', '/admin/esqueci-senha', '/admin/redefinir-senha'];
+
 export function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname === '/admin/login') {
+  if (PUBLIC_PATHS.includes(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
   const token = req.cookies.get(MERCHANT_COOKIE)?.value;
