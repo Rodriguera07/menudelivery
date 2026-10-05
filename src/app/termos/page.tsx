@@ -68,7 +68,7 @@ export default function TermosPage() {
 
           <section>
             <h2>6. Disponibilidade do serviço</h2>
-            <p>Fazemos o possível para manter a plataforma no ar, mas não garantimos disponibilidade ininterrupta. Manutenções, falhas de infraestrutura de terceiros (ex.: WhatsApp Cloud API, banco de dados) podem causar indisponibilidade temporária.</p>
+            <p>Fazemos o possível para manter a plataforma no ar, mas não garantimos disponibilidade ininterrupta. Manutenções, falhas de infraestrutura de terceiros (ex.: provedor de WhatsApp, banco de dados) podem causar indisponibilidade temporária.</p>
           </section>
 
           <section>

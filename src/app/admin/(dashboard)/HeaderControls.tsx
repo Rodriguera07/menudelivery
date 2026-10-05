@@ -6,12 +6,10 @@ import { Icon, I } from './pp-icons';
 export default function HeaderControls({
   slug,
   initialIsOpen,
-  hasNew,
   btnGhostClass,
 }: {
   slug: string;
   initialIsOpen: boolean;
-  hasNew: boolean;
   btnGhostClass: string;
 }) {
   const [aberta, setAberta] = useState(initialIsOpen);
@@ -72,10 +70,6 @@ export default function HeaderControls({
       <a href={linkLoja} target="_blank" rel="noopener noreferrer" className={`${btnGhostClass} shrink-0`}>
         Ver minha loja <Icon d={I.externo} size={15} />
       </a>
-      <button aria-label="Notificações" className="relative w-11 h-11 rounded-[10px] grid place-items-center hover:bg-[#F1EEEB] shrink-0">
-        <Icon d={I.sino} size={20} />
-        {hasNew && <span className="absolute top-[9px] right-2.5 w-[9px] h-[9px] rounded-full bg-[#D0101F] border-2 border-white" />}
-      </button>
     </>
   );
 }

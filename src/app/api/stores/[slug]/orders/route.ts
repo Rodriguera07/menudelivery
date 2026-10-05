@@ -11,6 +11,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
   const session = await getCustomerSession();
   if (!session) return NextResponse.json({ error: 'Faça login para finalizar o pedido.' }, { status: 401 });
 
+  // Cada pedido dispara uma mensagem real de WhatsApp — limita quantos um mesmo
+  // cliente consegue criar em sequência, pra não virar vetor de spam/abuso.
+  const recentOrders = await prisma.order.count({
+    where: { customerId: session.customerId, createdAt: { gte: new Date(Date.now() - 60_000) } },
+  });
+  if (recentOrders >= 5) {
+    return NextResponse.json({ error: 'Muitos pedidos em sequência. Aguarde um minuto e tente de novo.' }, { status: 429 });
+  }
+
   const { slug } = await params;
   const parsed = checkoutSchema.safeParse(await req.json());
   if (!parsed.success) {

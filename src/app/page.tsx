@@ -58,7 +58,7 @@ const RECURSOS = [
 const TRUST_POINTS = [
   { icon: ShieldIcon, title: 'Dados isolados por loja', desc: 'Cada loja só enxerga os próprios produtos, cupons e pedidos — sem cruzamento entre lojistas.' },
   { icon: LockIcon, title: 'Senha criptografada', desc: 'Login protegido com hash bcrypt, sessão em cookie seguro e verificação em duas etapas opcional.' },
-  { icon: WhatsappIcon, title: 'WhatsApp oficial', desc: 'Integração com a Cloud API da Meta — o pedido chega formatado, direto no seu número.' },
+  { icon: WhatsappIcon, title: 'Direto no seu WhatsApp', desc: 'Conecte o WhatsApp da sua loja escaneando um QR code — o pedido chega formatado, na hora, no seu número de verdade.' },
   { icon: PixIcon, title: 'Pix direto pra você', desc: 'Usamos a sua própria chave Pix. O dinheiro do cliente cai na sua conta, sem intermediário.' },
 ];
 

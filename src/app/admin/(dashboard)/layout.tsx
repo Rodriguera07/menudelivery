@@ -34,8 +34,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
   ]);
   if (!store) redirect('/admin/login');
 
-  const hasNew = await prisma.order.count({ where: { storeId: session.storeId, status: 'RECEIVED' } });
-
   return (
     <div className={`pp-root ${display.variable} ${body.variable} ${mono.variable} min-h-screen flex flex-col`}>
       <style>{CSS}</style>
@@ -50,7 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <span className="pp-display text-xl font-bold leading-none truncate">{store.name}</span>
           </div>
 
-          <HeaderControls slug={store.slug} initialIsOpen={store.isOpen} hasNew={hasNew > 0} btnGhostClass={btnGhost} />
+          <HeaderControls slug={store.slug} initialIsOpen={store.isOpen} btnGhostClass={btnGhost} />
 
           <div className="w-px h-8 bg-[#E4DFDA] hidden sm:block" />
           <div className="flex items-center gap-2.5 shrink-0">

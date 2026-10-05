@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword, createCustomerSession } from '@/lib/auth';
 import { customerLoginSchema } from '@/lib/validation';
 import { isLocked, registerFailedAttempt } from '@/lib/rate-limit';
+import { onlyDigits } from '@/lib/format';
 
 export async function POST(req: NextRequest) {
   const parsed = customerLoginSchema.safeParse(await req.json());
@@ -11,8 +12,10 @@ export async function POST(req: NextRequest) {
   }
   const { identifier, password } = parsed.data;
 
+  // Aceita o telefone digitado com ou sem máscara — comparamos sempre só os dígitos,
+  // já que é assim que o telefone é salvo no cadastro.
   const customer = await prisma.customer.findFirst({
-    where: { OR: [{ phone: identifier }, { email: identifier.toLowerCase() }] },
+    where: { OR: [{ phone: onlyDigits(identifier) }, { email: identifier.toLowerCase() }] },
   });
 
   const genericError = NextResponse.json({ error: 'WhatsApp/e-mail ou senha incorretos.' }, { status: 401 });

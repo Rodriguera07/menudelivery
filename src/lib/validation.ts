@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { onlyDigits } from './format';
 
 export const STORE_CATEGORIES = [
   'Salgados e bolos de pote',
@@ -13,7 +14,7 @@ export const merchantSignupSchema = z.object({
   storeName: z.string().trim().min(2, 'Informe o nome da loja'),
   category: z.string().trim().min(1, 'Selecione uma categoria'),
   ownerName: z.string().trim().min(2, 'Informe seu nome'),
-  whatsapp: z.string().trim().min(8, 'Informe um WhatsApp válido'),
+  whatsapp: z.string().trim().min(8, 'Informe um WhatsApp válido').transform(onlyDigits),
   email: z.string().trim().toLowerCase().email('E-mail inválido'),
   password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres'),
 });
@@ -25,7 +26,7 @@ export const merchantLoginSchema = z.object({
 
 export const customerSignupSchema = z.object({
   name: z.string().trim().min(2, 'Informe seu nome'),
-  phone: z.string().trim().min(8, 'Informe um WhatsApp válido'),
+  phone: z.string().trim().min(8, 'Informe um WhatsApp válido').transform(onlyDigits),
   email: z
     .string()
     .trim()
@@ -68,7 +69,7 @@ export const couponUpdateSchema = z.object({
 
 export const storeSettingsSchema = z.object({
   name: z.string().trim().min(2, 'Informe o nome da loja').optional(),
-  whatsapp: z.string().trim().min(8, 'Informe um WhatsApp válido').optional(),
+  whatsapp: z.string().trim().min(8, 'Informe um WhatsApp válido').transform(onlyDigits).optional(),
   pixKey: z.string().trim().min(1, 'Informe uma chave Pix válida').optional().or(z.literal('')),
   deliveryFee: z.coerce.number().nonnegative().optional(),
   minOrder: z.coerce.number().nonnegative().optional(),

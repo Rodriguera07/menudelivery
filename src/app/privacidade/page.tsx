@@ -54,7 +54,7 @@ export default function PrivacidadePage() {
             <h2>3. Com quem compartilhamos</h2>
             <p>Não vendemos dados pessoais. Compartilhamos o mínimo necessário com prestadores que operam a infraestrutura da plataforma:</p>
             <ul>
-              <li><strong>Meta (WhatsApp Cloud API)</strong> — para entregar a mensagem do pedido no WhatsApp da loja;</li>
+              <li><strong>Provedor de infraestrutura de WhatsApp</strong> — conecta o número de WhatsApp da própria loja (escolhido pelo lojista) para entregar a mensagem do pedido;</li>
               <li><strong>Vercel</strong> — hospedagem da aplicação, banco de dados e armazenamento de imagens;</li>
               <li><strong>Resend</strong> — envio de e-mails transacionais (ex.: recuperação de senha);</li>
               <li>Ferramentas de monitoramento de erros, usadas apenas para identificar falhas técnicas, não para fins comerciais.</li>
