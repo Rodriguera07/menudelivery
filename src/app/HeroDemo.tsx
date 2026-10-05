@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { WhatsappIcon, SwitchIcon } from '@/components/icons';
+import { FoodIcon } from './FoodIcons';
 
 type Item = { id: string; nome: string; desc: string; preco: number; cor: string };
 
@@ -157,7 +158,13 @@ export default function HeroDemo() {
                 key={`${loja.id}-${i.id}`}
                 className={`bg-surface rounded-xl p-2.5 flex items-center gap-2.5 border transition-colors animate-fade-in-up ${q ? 'border-brand/30' : 'border-line'}`}
               >
-                <div className="w-11 h-11 rounded-lg shrink-0" style={{ background: i.cor }} aria-hidden="true" />
+                <div
+                  className="w-11 h-11 rounded-lg shrink-0 grid place-items-center"
+                  style={{ background: i.cor }}
+                  aria-hidden="true"
+                >
+                  <FoodIcon id={i.id} className="w-7 h-7" />
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-ink truncate">{i.nome}</p>
                   <p className="text-[10px] text-muted truncate">{i.desc}</p>
